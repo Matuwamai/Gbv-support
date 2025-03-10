@@ -3,7 +3,8 @@ import cors from "cors"
 import dotenv from "dotenv";
 import userRoutes from "./routes/user.js";
 import postRoutes from "./routes/posts.js";
-
+import commentRoutes from "./routes/comments.js";
+import likeRoutes from "./routes/like_Dislike.js";
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -13,6 +14,8 @@ dotenv.config();
 
 app.use("/api/users", userRoutes);
 app.use("/api/posts", postRoutes);
+app.use("/api/comments", commentRoutes);
+app.use("/api/likes", likeRoutes);
 
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);

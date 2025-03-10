@@ -8,34 +8,32 @@ datasource db {
 }
 
 model User {
-  id        Int     @id @default(autoincrement())
-  name      String
-  email     String  @unique
-  password  String
-  role      Role    @default(USER)
-  birthday  DateTime
-  gender    Gender
-  posts     Post[]
-  comments  Comment[]
-  reactions LikeDislike[]
-  reposts   Repost[]
-  cases     Case[]
-  calls     EmergencyCall[]
-  createdAt DateTime @default(now())
+  id         Int        @id @default(autoincrement())
+  name       String
+  email      String     @unique
+  password   String
+  role       Role       @default(USER)
+  posts      Post[]
+  comments   Comment[]
+  reactions  LikeDislike[]
+  reposts    Repost[]
+  cases      Case[]     // Cases reported by the user
+  emergencyCalls EmergencyCall[]
+  createdAt  DateTime   @default(now())
 }
 
 model Post {
-  id        Int       @id @default(autoincrement())
-  user      User      @relation(fields: [userId], references: [id])
-  userId    Int
-  content   String
-  mediaUrl  String?
-  status    PostStatus @default(ACTIVE)
-  comments  Comment[]
-  reactions LikeDislike[]
-  reposts   Repost[]
-  case      Case?
-  createdAt DateTime  @default(now())
+  id         Int          @id @default(autoincrement())
+  user       User         @relation(fields: [userId], references: [id])
+  userId     Int
+  content    String
+  mediaUrl   String?
+  status     PostStatus   @default(ACTIVE)
+  comments   Comment[]
+  reactions  LikeDislike[]
+  reposts    Repost[]
+  case       Case?
+  createdAt  DateTime     @default(now())
 }
 
 model Comment {
@@ -53,16 +51,17 @@ model Comment {
 }
 
 model LikeDislike {
-  id        Int       @id @default(autoincrement())
-  user      User      @relation(fields: [userId], references: [id])
+  id        Int     @id @default(autoincrement())
+  user      User    @relation(fields: [userId], references: [id])
   userId    Int
-  post      Post?     @relation(fields: [postId], references: [id])
-  postId    Int?
-  comment   Comment?  @relation(fields: [commentId], references: [id])
-  commentId Int?
-  reaction  ReactionType
-  createdAt DateTime  @default(now())
+  post      Post    @relation(fields: [postId], references: [id])
+  postId    Int
+  reaction  ReactionType // Use the enum
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId]) // Ensures a user can only like/dislike a post once
 }
+
 
 model Repost {
   id        Int       @id @default(autoincrement())
@@ -74,29 +73,29 @@ model Repost {
 }
 
 model Case {
-  id          Int       @id @default(autoincrement())
-  post        Post      @relation(fields: [postId], references: [id])
-  postId      Int       @unique
-  user        User      @relation(fields: [userId], references: [id])
+  id          Int        @id @default(autoincrement())
+  user        User       @relation(fields: [userId], references: [id])
   userId      Int
+  post        Post       @relation(fields: [postId], references: [id])
+  postId      Int
   status      CaseStatus @default(PENDING)
   assignedTo  Authority? @relation(fields: [assignedToId], references: [id])
   assignedToId Int?
-  createdAt   DateTime  @default(now())
+  createdAt   DateTime   @default(now())
 }
 
 model EmergencyCall {
-  id          Int       @id @default(autoincrement())
-  user        User?     @relation(fields: [userId], references: [id])
+  id          Int        @id @default(autoincrement())
+  user        User?      @relation(fields: [userId], references: [id])
   userId      Int?
-  phoneNumber String
+  phoneNumber String     @unique
   issueType   IssueType
   redirectedTo String
-  timestamp   DateTime  @default(now())
+  timestamp   DateTime   @default(now())
 }
 
 model Authority {
-  id        Int       @id @default(autoincrement())
+  id        Int           @id @default(autoincrement())
   name      String
   contact   String
   location  String
@@ -108,12 +107,6 @@ enum Role {
   USER
   ADMIN
   MODERATOR
-}
-
-enum Gender {
-  MALE
-  FEMALE
-  OTHER
 }
 
 enum PostStatus {
