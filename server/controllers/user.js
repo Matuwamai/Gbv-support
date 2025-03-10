@@ -1,8 +1,8 @@
-import { Request, Response } from "express";
+
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { validationResult } from "express-validator";
+// import { validationResult } from "express-validator";
 
 const prisma = new PrismaClient();
 const SECRET_KEY = process.env.JWT_SECRET || "your_secret_key"; // Use env file in production
@@ -71,7 +71,7 @@ export const logoutUser = async (req, res) => {
 };
 
 // ✅ DELETE USER ACCOUNT
-export const deleteUser = async (req: Request, res: Response) => {
+export const deleteUser = async (req, res) => {
   try {
     const { userId } = req.params;
 
@@ -84,3 +84,38 @@ export const deleteUser = async (req: Request, res: Response) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
+// ✅ GET ALL USERS
+export const getAllUsers = async (req, res) => {
+    try {
+      const users = await prisma.user.findMany({
+        select: { id: true, name: true, email: true, birthday: true, gender: true, createdAt: true },
+      });
+  
+      return res.status(200).json(users);
+    } catch (error) {
+      console.error("Get Users Error:", error);
+      return res.status(500).json({ message: "Server error" });
+    }
+  };
+  
+  // ✅ GET A SINGLE USER BY ID
+  export const getUserById = async (req, res) => {
+    try {
+      const { userId } = req.params;
+  
+      const user = await prisma.user.findUnique({
+        where: { id: parseInt(userId) },
+        select: { id: true, name: true, email: true, birthday: true, gender: true, createdAt: true },
+      });
+  
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+  
+      return res.status(200).json(user);
+    } catch (error) {
+      console.error("Get User Error:", error);
+      return res.status(500).json({ message: "Server error" });
+    }
+  };
+  
