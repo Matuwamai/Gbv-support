@@ -1,0 +1,146 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int     @id @default(autoincrement())
+  name      String
+  email     String  @unique
+  password  String
+  role      Role    @default(USER)
+  birthday  DateTime
+  gender    Gender
+  posts     Post[]
+  comments  Comment[]
+  reactions LikeDislike[]
+  reposts   Repost[]
+  cases     Case[]
+  calls     EmergencyCall[]
+  createdAt DateTime @default(now())
+}
+
+model Post {
+  id        Int       @id @default(autoincrement())
+  user      User      @relation(fields: [userId], references: [id])
+  userId    Int
+  content   String
+  mediaUrl  String?
+  status    PostStatus @default(ACTIVE)
+  comments  Comment[]
+  reactions LikeDislike[]
+  reposts   Repost[]
+  case      Case?
+  createdAt DateTime  @default(now())
+}
+
+model Comment {
+  id        Int       @id @default(autoincrement())
+  post      Post      @relation(fields: [postId], references: [id])
+  postId    Int
+  user      User      @relation(fields: [userId], references: [id])
+  userId    Int
+  content   String
+  parent    Comment?  @relation("CommentToComment", fields: [parentId], references: [id])
+  parentId  Int?
+  children  Comment[] @relation("CommentToComment")
+  reactions LikeDislike[]
+  createdAt DateTime  @default(now())
+}
+
+model LikeDislike {
+  id        Int       @id @default(autoincrement())
+  user      User      @relation(fields: [userId], references: [id])
+  userId    Int
+  post      Post?     @relation(fields: [postId], references: [id])
+  postId    Int?
+  comment   Comment?  @relation(fields: [commentId], references: [id])
+  commentId Int?
+  reaction  ReactionType
+  createdAt DateTime  @default(now())
+}
+
+model Repost {
+  id        Int       @id @default(autoincrement())
+  user      User      @relation(fields: [userId], references: [id])
+  userId    Int
+  post      Post      @relation(fields: [postId], references: [id])
+  postId    Int
+  createdAt DateTime  @default(now())
+}
+
+model Case {
+  id          Int       @id @default(autoincrement())
+  post        Post      @relation(fields: [postId], references: [id])
+  postId      Int       @unique
+  user        User      @relation(fields: [userId], references: [id])
+  userId      Int
+  status      CaseStatus @default(PENDING)
+  assignedTo  Authority? @relation(fields: [assignedToId], references: [id])
+  assignedToId Int?
+  createdAt   DateTime  @default(now())
+}
+
+model EmergencyCall {
+  id          Int       @id @default(autoincrement())
+  user        User?     @relation(fields: [userId], references: [id])
+  userId      Int?
+  phoneNumber String
+  issueType   IssueType
+  redirectedTo String
+  timestamp   DateTime  @default(now())
+}
+
+model Authority {
+  id        Int       @id @default(autoincrement())
+  name      String
+  contact   String
+  location  String
+  category  AuthorityType
+  cases     Case[]
+}
+
+enum Role {
+  USER
+  ADMIN
+  MODERATOR
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum PostStatus {
+  ACTIVE
+  FLAGGED
+  RESOLVED
+}
+
+enum ReactionType {
+  LIKE
+  DISLIKE
+}
+
+enum CaseStatus {
+  PENDING
+  IN_PROGRESS
+  RESOLVED
+}
+
+enum IssueType {
+  SEXUAL_HARASSMENT
+  DOMESTIC_VIOLENCE
+  OTHER
+}
+
+enum AuthorityType {
+  POLICE
+  HEALTHCARE
+  NGO
+}
