@@ -8,6 +8,7 @@ import likeRoutes from "./routes/like_Dislike.js";
 import repostRoutes from "./routes/reposts.js";
 import caseRoutes from "./routes/cases.js";
 import emergencyCallRoutes from "./routes/emergency_call.js"
+import authorityRoutes from "./routes/Authorities.js";
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -22,6 +23,7 @@ app.use("/api/likes", likeRoutes);
 app.use("/api/reposts", repostRoutes);
 app.use("/api/cases", caseRoutes);
 app.use("/api/emergency-calls", emergencyCallRoutes);
+app.use("/api/authorities", authorityRoutes);
 
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
