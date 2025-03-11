@@ -25,7 +25,7 @@ export const createPost = async (req, res) => {
   }
 };
 
-// ✅ GET ALL POSTS
+//   GET ALL POSTS
 export const getAllPosts = async (req, res) => {
   try {
     const posts = await prisma.post.findMany({
@@ -61,19 +61,16 @@ export const getPostById = async (req, res) => {
   }
 };
 
-// ✅ UPDATE A POST
+// UPDATE A POST
 export const updatePost = async (req, res) => {
   try {
     const { postId } = req.params;
     const { content } = req.body;
-
-    // Check if post exists
     const existingPost = await prisma.post.findUnique({ where: { id: parseInt(postId) } });
     if (!existingPost) {
       return res.status(404).json({ message: "Post not found" });
     }
 
-    // Update post
     const updatedPost = await prisma.post.update({
       where: { id: parseInt(postId) },
       data: { content },
@@ -86,12 +83,11 @@ export const updatePost = async (req, res) => {
   }
 };
 
-// ✅ DELETE A POST
+// DELETE A POST
 export const deletePost = async (req, res) => {
   try {
     const { postId } = req.params;
 
-    // Check if post exists
     const existingPost = await prisma.post.findUnique({ where: { id: parseInt(postId) } });
     if (!existingPost) {
       return res.status(404).json({ message: "Post not found" });
