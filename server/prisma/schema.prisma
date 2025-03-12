@@ -13,14 +13,27 @@ model User {
   email      String     @unique
   password   String
   role       Role       @default(USER)
+
+  birthday   DateTime   // Added: To store user's date of birth
+  gender     Gender     // Added: Enum for gender selection
+  contact    String     // Added: To store user's phone number
+
   posts      Post[]
   comments   Comment[]
   reactions  LikeDislike[]
   reposts    Repost[]
-  cases      Case[]     // Cases reported by the user
+  cases      Case[]          // Cases reported by the user
   emergencyCalls EmergencyCall[]
+
   createdAt  DateTime   @default(now())
 }
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
 
 model Post {
   id         Int          @id @default(autoincrement())

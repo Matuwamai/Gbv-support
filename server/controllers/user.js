@@ -1,16 +1,25 @@
-
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-// import { validationResult } from "express-validator";
 
 const prisma = new PrismaClient();
-const SECRET_KEY = process.env.JWT_SECRET || "your_secret_key"; // Use env file in production
+const SECRET_KEY = process.env.JWT_SECRET || "your_secret_key"; // Use env in production
 
 // ✅ REGISTER A NEW USER
 export const registerUser = async (req, res) => {
   try {
-    const { name, email, password, birthday, gender } = req.body;
+    const { name, email, password, birthday, Gender, contact } = req.body;
+
+    // Validate required fields
+    if (!name || !email || !password || !birthday || !Gender || !contact) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    // Validate birthday
+    const parsedBirthday = new Date(birthday);
+    if (isNaN(parsedBirthday)) {
+      return res.status(400).json({ message: "Invalid birthday format" });
+    }
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({ where: { email } });
@@ -23,7 +32,7 @@ export const registerUser = async (req, res) => {
 
     // Create new user
     const user = await prisma.user.create({
-      data: { name, email, password: hashedPassword, birthday: new Date(birthday), gender },
+      data: { name, email, password: hashedPassword, birthday: parsedBirthday, Gender :G   ender, contact },
     });
 
     return res.status(201).json({ message: "User registered successfully", user });
@@ -37,6 +46,11 @@ export const registerUser = async (req, res) => {
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
+
+    // Validate required fields
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password are required" });
+    }
 
     // Find user by email
     const user = await prisma.user.findUnique({ where: { email } });
@@ -60,7 +74,7 @@ export const loginUser = async (req, res) => {
   }
 };
 
-// ✅ LOGOUT USER (Clearing token on frontend is enough)
+// ✅ LOGOUT USER
 export const logoutUser = async (req, res) => {
   try {
     return res.status(200).json({ message: "User logged out successfully" });
@@ -75,8 +89,14 @@ export const deleteUser = async (req, res) => {
   try {
     const { userId } = req.params;
 
+    // Validate userId
+    const userIdNum = parseInt(userId);
+    if (isNaN(userIdNum)) {
+      return res.status(400).json({ message: "Invalid user ID" });
+    }
+
     // Find and delete user
-    await prisma.user.delete({ where: { id: parseInt(userId) } });
+    await prisma.user.delete({ where: { id: userIdNum } });
 
     return res.status(200).json({ message: "User deleted successfully" });
   } catch (error) {
@@ -84,38 +104,44 @@ export const deleteUser = async (req, res) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
+
 // ✅ GET ALL USERS
 export const getAllUsers = async (req, res) => {
-    try {
-      const users = await prisma.user.findMany({
-        select: { id: true, name: true, email: true, birthday: true, gender: true, createdAt: true },
-      });
-  
-      return res.status(200).json(users);
-    } catch (error) {
-      console.error("Get Users Error:", error);
-      return res.status(500).json({ message: "Server error" });
+  try {
+    const users = await prisma.user.findMany({
+      select: { id: true, name: true, email: true, birthday: true, Gender: true, contact: true, createdAt: true },
+    });
+
+    return res.status(200).json(users);
+  } catch (error) {
+    console.error("Get Users Error:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+// ✅ GET A SINGLE USER BY ID
+export const getUserById = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // Validate userId
+    const userIdNum = parseInt(userId);
+    if (isNaN(userIdNum)) {
+      return res.status(400).json({ message: "Invalid user ID" });
     }
-  };
-  
-  // ✅ GET A SINGLE USER BY ID
-  export const getUserById = async (req, res) => {
-    try {
-      const { userId } = req.params;
-  
-      const user = await prisma.user.findUnique({
-        where: { id: parseInt(userId) },
-        select: { id: true, name: true, email: true, birthday: true, gender: true, createdAt: true },
-      });
-  
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-  
-      return res.status(200).json(user);
-    } catch (error) {
-      console.error("Get User Error:", error);
-      return res.status(500).json({ message: "Server error" });
+
+    const user = await prisma.user.findUnique({
+      where: { id: userIdNum },
+      select: { id: true, name: true, email: true, birthday: true, Gender: true, contact: true, createdAt: true },
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
-  };
-  
+
+    return res.status(200).json(user);
+  } catch (error) {
+    console.error("Get User Error:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
