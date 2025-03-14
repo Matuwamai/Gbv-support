@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../components/AuthContextt";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext); // Use AuthContext for login
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -25,9 +27,9 @@ const Login = () => {
       const data = await response.json();
 
       if (response.ok) {
-        localStorage.setItem("token", data.token); // Store JWT token
+        login(data.token); // Store and decode the token using AuthContext
         alert("Login successful!");
-        navigate("/dashboard"); // Redirect to dashboard or home page
+        navigate("/dashboard"); // Redirect to dashboard
       } else {
         alert(data.message || "Login failed. Check your credentials.");
       }
