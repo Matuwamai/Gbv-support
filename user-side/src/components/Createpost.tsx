@@ -41,7 +41,7 @@ const PostCreation = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center p-6 bg-gray-900 min-h-screen">
+    <div className="flex flex-col items-center justify-center p-6 bg-gray-400 min-h-screen">
       <div className="w-80 bg-gray-800 p-4 rounded-2xl shadow-lg">
         <div
           className="w-full h-40 bg-gray-700 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-600 transition"
@@ -75,7 +75,7 @@ const PostCreation = () => {
         ></textarea>
 
         <button
-          className="w-full mt-4 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition"
+          className="w-full mt-4 bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 transition"
           onClick={handlePostSubmit}
         >
           Post

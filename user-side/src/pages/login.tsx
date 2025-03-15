@@ -1,10 +1,18 @@
-import { useState,  } from "react";
+import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-// import { AuthContext } from "../components/AuthContextt";
+import { Authcontext } from "../context/authContext";
 
 const Login = () => {
   const navigate = useNavigate();
-  // const { login } = useContext(AuthContext); // Use AuthContext for login
+  const authContext = useContext(Authcontext);
+
+  if (!authContext) {
+    console.error("AuthContext is not available! Ensure AuthContextProvider is wrapping the app.");
+    return <div>Error: AuthContext is missing</div>;
+  }
+
+  const { login } = authContext; // ✅ Ensure context exists before using login
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -18,21 +26,9 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://localhost:5000/api/users/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        // login(data.token); // Store and decode the token using AuthContext
-        alert("Login successful!");
-        navigate("/dashboard"); // Redirect to dashboard
-      } else {
-        alert(data.message || "Login failed. Check your credentials.");
-      }
+      await login(formData);
+      console.log("Login successful! Redirecting...");
+      navigate("/dashboard");
     } catch (error) {
       console.error("Login Error:", error);
       alert("An error occurred. Please try again.");

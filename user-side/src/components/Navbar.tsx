@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState , useContext} from "react";
 import { Link } from "react-router-dom";
 import { Menu, X, PlusCircle, ShieldAlert, PhoneCall, User } from "lucide-react";
-
+import { Authcontext } from "../context/authContext";
 const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [dropdownOpen, setDropdownOpen] = useState(false);
+    const authContext = useContext(Authcontext); 
+    const currentUser = authContext?.currentUser;  
 
     return (
         <nav className="bg-purple-600  text-white p-4 shadow-md">
@@ -37,7 +39,7 @@ const Navbar = () => {
 
                     <button onClick={() => setDropdownOpen(!dropdownOpen)} className="flex items-center gap-2 hover:text-gray-200">
                         <User size={24} />
-                        <span className="text-sm">Account</span>
+                        <span className="text-sm">{currentUser?.name}</span>
                     </button>
                     {dropdownOpen && (
                         <div className="absolute right-0 mt-2 bg-white text-purple-600 font-bold shadow-lg rounded w-32">

@@ -1,11 +1,17 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import ThumbUpIcon from "@mui/icons-material/ThumbUp";
 import ModeCommentIcon from "@mui/icons-material/ModeComment";
 import { BiRepost } from "react-icons/bi";
+import { Authcontext } from "../context/authContext";
+
 
 const PostCard = ({ post }) => {
   if (!post) return <p>Post not found</p>;
+  const authContext = useContext(Authcontext); 
+  const currentUser = authContext?.currentUser;
+
+  console.log("Current User Object:", currentUser);
 
   const [likes, setLikes] = useState(post.likes || 0);
   const [liked, setLiked] = useState(false);
@@ -17,20 +23,25 @@ const PostCard = ({ post }) => {
 
   // Handle Like
   const handleLike = async () => {
+    if (!currentUser) {
+      console.error("User not logged in");
+      return;
+    }
+
     try {
       const response = await axios.post(`http://localhost:5000/api/likes/`, {
-        userId: currentUser.id,  // Replace with actual logged-in user ID
-        postId: post.id,         // Replace with the actual post ID
+        userId: currentUser.id,
+        postId: post.id,
         reaction: "LIKE",
       });
-  
-      setLikes(response.data.likes); // Assuming API returns updated like count
+
+      setLikes(response.data.likes); 
       setLiked(true);
     } catch (error) {
       console.error("Error liking post:", error);
     }
   };
-  
+
 
   // Handle Comment Posting
   const handleComment = async () => {
@@ -38,7 +49,7 @@ const PostCard = ({ post }) => {
 
     const commentData = {
       content: newComment,
-      userId: post.user?.id,
+      userId: currentUser.id,
       postId: post.id,
     };
 
