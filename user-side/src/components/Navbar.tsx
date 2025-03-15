@@ -10,8 +10,7 @@ const Navbar = () => {
         <nav className="bg-purple-600  text-white p-4 shadow-md">
             <div className="container mx-auto flex justify-between items-center">
                 {/* Logo */}
-                <h1 className="text-xl font-bold md:text-2xl">GBV<span className="hidden md:inline"> Support</span></h1>
-
+                <a href="/dashboard" className="text-xl font-bold md:text-2xl">GBV<span className="hidden md:inline"> Support</span></a>
                 {/* Mobile Menu Button */}
                 <button className="md:hidden" onClick={() => setIsOpen(!isOpen)}>
                     {isOpen ? <X size={24} /> : <Menu size={24} />}
@@ -21,7 +20,7 @@ const Navbar = () => {
                 <ul className={`md:flex md:items-center gap-6 ${isOpen ? "block" : "hidden"} absolute md:static bg-purple-600 text-white w-full md:w-auto left-0 top-16 p-4 md:p-0 shadow-md md:shadow-none`}>
                     <li className="flex flex-col items-center md:flex-row">
                         <PlusCircle size={20} />
-                        <Link to="/posts" className="ml-1">Post</Link>
+                        <Link to="/newpost" className="ml-1">Post</Link>
                     </li>
                     <li className="flex flex-col items-center md:flex-row">
                         <ShieldAlert size={20} />

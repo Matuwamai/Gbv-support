@@ -1,71 +1,88 @@
-import { useState } from "react";
-import axios from "axios";
+import React, { useState } from "react";
+import { FaRegImage } from "react-icons/fa";
 
-const NewPost = () => {
-  const [text, setText] = useState("");
-  const [media, setMedia] = useState<File | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+const PostCreation = () => {
+  const [selectedMedia, setSelectedMedia] = useState(null);
+  const [postText, setPostText] = useState("");
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files[0]) {
-      setMedia(event.target.files[0]);
+  const handleMediaSelect = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const fileURL = URL.createObjectURL(file);
+      setSelectedMedia(fileURL);
     }
   };
 
-  const handleSubmit = async () => {
-    if (!text.trim() && !media) {
-      setError("Post cannot be empty");
-      return;
-    }
-
-    setLoading(true);
-    setError("");
-
+  const handlePostSubmit = async () => {
     const formData = new FormData();
-    formData.append("text", text);
-    if (media) {
-      formData.append("media", media);
+    formData.append("text", postText);
+    if (selectedMedia) {
+      const response = await fetch(selectedMedia);
+      const blob = await response.blob();
+      formData.append("media", blob, "uploadedMedia");
     }
 
     try {
-      await axios.post("/api/posts", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+      const response = await fetch("http://localhost:5000/api/posts/", {
+        method: "POST",
+        body: formData,
       });
 
-      // Reset form
-      setText("");
-      setMedia(null);
-    } catch (err) {
-      setError("Failed to create post");
-      console.error(err);
-    } finally {
-      setLoading(false);
+      if (response.ok) {
+        console.log("Post created successfully");
+        setPostText("");
+        setSelectedMedia(null);
+      } else {
+        console.error("Failed to create post");
+      }
+    } catch (error) {
+      console.error("Error creating post:", error);
     }
   };
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow-md">
-      <textarea
-        className="w-full p-2 border rounded-md"
-        placeholder="What's on your mind?"
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-      />
-      
-      <input type="file" accept="image/*,video/*" onChange={handleFileChange} className="mt-2" />
+    <div className="flex flex-col items-center justify-center p-6 bg-gray-900 min-h-screen">
+      <div className="w-80 bg-gray-800 p-4 rounded-2xl shadow-lg">
+        <div
+          className="w-full h-40 bg-gray-700 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-600 transition"
+          onClick={() => document.getElementById("mediaInput").click()}
+        >
+          {selectedMedia ? (
+            selectedMedia.endsWith(".mp4") || selectedMedia.endsWith(".webm") ? (
+              <video src={selectedMedia} controls className="w-full h-full rounded-lg" />
+            ) : (
+              <img src={selectedMedia} alt="Selected" className="w-full h-full rounded-lg" />
+            )
+          ) : (
+            <FaRegImage className="text-white text-3xl" />
+          )}
+        </div>
 
-      {error && <p className="text-red-500 mt-2">{error}</p>}
+        <input
+          type="file"
+          id="mediaInput"
+          accept="image/*,video/*"
+          className="hidden"
+          onChange={handleMediaSelect}
+        />
 
-      <button
-        className="bg-blue-500 text-white px-4 py-2 rounded-md mt-3"
-        onClick={handleSubmit}
-        disabled={loading}
-      >
-        {loading ? "Posting..." : "Post"}
-      </button>
+        <textarea
+          className="w-full mt-4 p-2 bg-gray-700 text-white rounded-lg focus:outline-none"
+          rows="3"
+          placeholder="Write something..."
+          value={postText}
+          onChange={(e) => setPostText(e.target.value)}
+        ></textarea>
+
+        <button
+          className="w-full mt-4 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition"
+          onClick={handlePostSubmit}
+        >
+          Post
+        </button>
+      </div>
     </div>
   );
 };
 
-export default NewPost;
+export default PostCreation;

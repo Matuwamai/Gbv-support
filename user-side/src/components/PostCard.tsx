@@ -18,13 +18,19 @@ const PostCard = ({ post }) => {
   // Handle Like
   const handleLike = async () => {
     try {
-      const response = await axios.post(`http://localhost:5000/api/likes/`);
-      setLikes(response.data.likes);
+      const response = await axios.post(`http://localhost:5000/api/likes/`, {
+        userId: currentUser.id,  // Replace with actual logged-in user ID
+        postId: post.id,         // Replace with the actual post ID
+        reaction: "LIKE",
+      });
+  
+      setLikes(response.data.likes); // Assuming API returns updated like count
       setLiked(true);
     } catch (error) {
       console.error("Error liking post:", error);
     }
   };
+  
 
   // Handle Comment Posting
   const handleComment = async () => {
@@ -75,7 +81,7 @@ const PostCard = ({ post }) => {
 
   const fetchReposts = async () => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/reposts/posts/${post.id}`);
+      const response = await axios.get(`http://localhost:5000/apii/reposts/post/${post.id}`);
       setReposts(response.data.reposts);
     } catch (error) {
       console.error("Error fetching reposts:", error);

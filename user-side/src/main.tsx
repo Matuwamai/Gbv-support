@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import SignUp from './pages/singup'
 import Login from './pages/login'
 import Layout from './components/Layout'
+import NewPost from './components/Createpost'
 
 import Dashboard from './pages/Dahboard'
 createRoot(document.getElementById('root')!).render(
@@ -15,6 +16,8 @@ createRoot(document.getElementById('root')!).render(
         <Route path='/login' element={<Login/>}/>
         <Route  element={<Layout/>} >
         <Route path='/dashboard' element={<Dashboard/>}/>
+        <Route path='/newpost' element={<NewPost/>}/>
+
         </Route>
       </Routes> 
     </Router>
