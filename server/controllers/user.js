@@ -3,15 +3,15 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 const prisma = new PrismaClient();
-const SECRET_KEY = process.env.JWT_SECRET || "your_secret_key"; // Use env in production
+const SECRET_KEY = process.env.JWT_SECRET ; // Use env in production
 
 // ✅ REGISTER A NEW USER
 export const registerUser = async (req, res) => {
   try {
-    const { name, email, password, birthday, Gender, contact } = req.body;
+    const { name, email, password, birthday, Gender,  } = req.body;
 
     // Validate required fields
-    if (!name || !email || !password || !birthday || !Gender || !contact) {
+    if (!name || !email || !password || !birthday || !Gender ) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
@@ -30,9 +30,9 @@ export const registerUser = async (req, res) => {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create new user
+    // Create new user 
     const user = await prisma.user.create({
-      data: { name, email, password: hashedPassword, birthday: parsedBirthday, Gender :G   ender, contact },
+      data: { name, email, password: hashedPassword, birthday: parsedBirthday,   gender:Gender.toUpperCase()},
     });
 
     return res.status(201).json({ message: "User registered successfully", user });
@@ -65,7 +65,7 @@ export const loginUser = async (req, res) => {
     }
 
     // Generate JWT token
-    const token = jwt.sign({ userId: user.id, email: user.email }, SECRET_KEY, { expiresIn: "7d" });
+    const token = jwt.sign({ userId: user.id, email: user.email, name:user.name }, SECRET_KEY, { expiresIn: "7d" });
 
     return res.status(200).json({ message: "Login successful", token, user });
   } catch (error) {
@@ -109,7 +109,7 @@ export const deleteUser = async (req, res) => {
 export const getAllUsers = async (req, res) => {
   try {
     const users = await prisma.user.findMany({
-      select: { id: true, name: true, email: true, birthday: true, Gender: true, contact: true, createdAt: true },
+      select: { id: true, name: true, email: true, birthday: true, Gender: true,  createdAt: true },
     });
 
     return res.status(200).json(users);
@@ -132,7 +132,7 @@ export const getUserById = async (req, res) => {
 
     const user = await prisma.user.findUnique({
       where: { id: userIdNum },
-      select: { id: true, name: true, email: true, birthday: true, Gender: true, contact: true, createdAt: true },
+      select: { id: true, name: true, email: true, birthday: true, Gender: true,  createdAt: true },
     });
 
     if (!user) {

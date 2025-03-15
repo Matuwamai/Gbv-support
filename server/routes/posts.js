@@ -8,6 +8,6 @@ router.post("/", createPost);
 router.get("/", getAllPosts);
 router.get("/:postId", getPostById);
 router.put("/:postId", updatePost);
-router.delete("/:postId", deletePost);
+router.delete("/:postId", deletePost); 
 
 export default router;

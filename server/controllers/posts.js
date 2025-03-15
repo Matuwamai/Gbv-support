@@ -43,10 +43,18 @@ export const getAllPosts = async (req, res) => {
 // ✅ GET A SINGLE POST BY ID
 export const getPostById = async (req, res) => {
   try {
+    console.log("Received postId:", req.params.postId); // Debugging
+
     const { postId } = req.params;
+    
+    // Ensure postId is a valid number
+    const id = parseInt(postId, 10);
+    if (isNaN(id)) {
+      return res.status(400).json({ message: "Invalid post ID" });
+    }
 
     const post = await prisma.post.findUnique({
-      where: { id: parseInt(postId) },
+      where: { id },
       include: { user: { select: { id: true, name: true } } },
     });
 
@@ -60,6 +68,7 @@ export const getPostById = async (req, res) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
+
 
 // UPDATE A POST
 export const updatePost = async (req, res) => {
