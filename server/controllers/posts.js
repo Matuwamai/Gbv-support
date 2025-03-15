@@ -5,17 +5,27 @@ const prisma = new PrismaClient();
 // ✅ CREATE A NEW POST
 export const createPost = async (req, res) => {
   try {
+    // console.log("Request Body:", req.body);
+
     const { content, userId } = req.body;
+    console.log(userId)
+
+    // Ensure userId is a number
+    if (!userId || isNaN(userId)) {
+      return res.status(400).json({ message: "Invalid or missing userId" });
+    }
+
+    const numericUserId = parseInt(userId, 10); // Convert userId to number
 
     // Check if user exists
-    const user = await prisma.user.findUnique({ where: { id: userId } });
+    const user = await prisma.user.findUnique({ where: { id: numericUserId } });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
     // Create post
     const post = await prisma.post.create({
-      data: { content, userId },
+      data: { content, userId: numericUserId },
     });
 
     return res.status(201).json({ message: "Post created successfully", post });
@@ -24,6 +34,7 @@ export const createPost = async (req, res) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
+
 
 //   GET ALL POSTS
 export const getAllPosts = async (req, res) => {
