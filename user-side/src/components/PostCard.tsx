@@ -8,7 +8,7 @@ import { Authcontext } from "../context/authContext";
 
 const PostCard = ({ post }) => {
   if (!post) return <p>Post not found</p>;
-  const authContext = useContext(Authcontext); 
+  const authContext = useContext(Authcontext);
   const currentUser = authContext?.currentUser;
 
   console.log("Current User Object:", currentUser);
@@ -20,6 +20,8 @@ const PostCard = ({ post }) => {
   const [reposts, setReposts] = useState(0);
   const [showCommentInput, setShowCommentInput] = useState(false);
   const [showAllComments, setShowAllComments] = useState(false);
+  const [reposted, setReposted] = useState(false); // Track if user has reposted
+
 
   // Handle Like
   const handleLike = async () => {
@@ -35,13 +37,31 @@ const PostCard = ({ post }) => {
         reaction: "LIKE",
       });
 
-      setLikes(response.data.likes); 
+      setLikes(response.data.likes);
       setLiked(true);
     } catch (error) {
       console.error("Error liking post:", error);
     }
   };
 
+  const handleRepost = async () => {
+    if (!currentUser) {
+      console.error("User not logged in");
+      return;
+    }
+
+    try {
+      const response = await axios.post(`http://localhost:5000/api/reposts/`, {
+        userId: currentUser.id,
+        postId: post.id,
+      });
+
+      console.log("Post reposted successfully:", response.data);
+      setReposted(true); // Update state if needed
+    } catch (error) {
+      console.error("Error reposting post:", error);
+    }
+  };
 
   // Handle Comment Posting
   const handleComment = async () => {
@@ -85,10 +105,10 @@ const PostCard = ({ post }) => {
         setComments([]); // Set fallback value
       }
     };
-  
+
     fetchComments();
   }, [post.id]);
-  
+
 
   const fetchReposts = async () => {
     try {
@@ -137,7 +157,10 @@ const PostCard = ({ post }) => {
           <span>0 Comments</span>
         )}
 
-        <span>{reposts} Reposts</span>
+        <button onClick={handleRepost} disabled={reposted} className="text-xs text-gray-700">
+          <span>{reposts} Reposts</span>
+        </button>
+
       </div>
 
       {/* Action Buttons */}
@@ -148,9 +171,10 @@ const PostCard = ({ post }) => {
         <button onClick={() => setShowCommentInput(!showCommentInput)} className="hover:text-blue-500">
           <ModeCommentIcon />
         </button>
-        <button className="hover:text-blue-500">
+        <button onClick={handleRepost} className={`hover:text-blue-500 ${reposted ? "text-blue-500" : ""}`}>
           <BiRepost />
         </button>
+
       </div>
 
       {/* Comment Input Field */}

@@ -1,12 +1,18 @@
-import { useState , useContext} from "react";
+import { useState, useContext } from "react";
 import { Link } from "react-router-dom";
 import { Menu, X, PlusCircle, ShieldAlert, PhoneCall, User } from "lucide-react";
 import { Authcontext } from "../context/authContext";
+import { useDarkMode } from "../context/darkModeContext";
+import { Moon, Sun } from "lucide-react"; // Optional icons
+
 const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [dropdownOpen, setDropdownOpen] = useState(false);
-    const authContext = useContext(Authcontext); 
-    const currentUser = authContext?.currentUser;  
+    const authContext = useContext(Authcontext);
+    const currentUser = authContext?.currentUser;
+    console.log("Current User:", currentUser);
+    const { darkMode, toggleDarkMode } = useDarkMode();
+
 
     return (
         <nav className="bg-purple-600  text-white p-4 shadow-md">
@@ -37,14 +43,20 @@ const Navbar = () => {
                 {/* Account Dropdown */}
                 <div className="relative group">
 
-                    <button onClick={() => setDropdownOpen(!dropdownOpen)} className="flex items-center gap-2 hover:text-gray-200">
+                    <button onClick={() => setDropdownOpen(!dropdownOpen)} className="flex items-center gap-1 hover:text-gray-200">
                         <User size={24} />
-                        <span className="text-sm">{currentUser?.name}</span>
+                        <span className="text-sm">{currentUser.name}</span>
                     </button>
                     {dropdownOpen && (
                         <div className="absolute right-0 mt-2 bg-white text-purple-600 font-bold shadow-lg rounded w-32">
                             <Link to="/profile" className="block px-4 py-2 hover:bg-gray-200">Profile</Link>
                             <button className="block w-full text-left px-4 py-2 hover:bg-gray-200">Logout</button>
+                            <button
+                                onClick={toggleDarkMode}
+                                className="p-2 rounded-lg bg-gray-200 dark:bg-gray-700"
+                            >
+                                {darkMode ? <Sun className="w-6 h-6" /> : <Moon className="w-6 h-6" />}
+                            </button>
                         </div>
                     )}
                 </div>
