@@ -137,13 +137,16 @@ const PostCard = ({ post }) => {
       </div>
 
       {/* Post Media */}
-      {post.video ? (
-        <video controls className="w-full rounded-lg mb-2">
-          <source src={post.video} type="video/mp4" />
-        </video>
-      ) : post.image ? (
-        <img src={post.image} alt="Post" className="w-full rounded-lg mb-2" />
-      ) : null}
+      {post.mediaUrl && (
+        post.mediaUrl.endsWith(".mp4") ? (
+          <video controls className="w-full rounded-lg mb-2">
+            <source src={post.mediaUrl} type="video/mp4" />
+          </video>
+        ) : (
+          <img src={post.mediaUrl} alt="Post" className="w-full rounded-lg mb-2" />
+        )
+      )}
+
 
       {/* Post Content */}
       {post.content && <p className="text-gray-700 mb-2">{post.content}</p>}

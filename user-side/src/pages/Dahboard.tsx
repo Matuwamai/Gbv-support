@@ -7,8 +7,7 @@ const Dashboard = () => {
     id: string;
     user: { name: string; profilePhoto?: string };
     content?: string;
-    image?: string;
-    video?: string;
+    mediaUrl?: string;
     likes: number;
     comments: { id: string; text: string; user: string }[];
   };

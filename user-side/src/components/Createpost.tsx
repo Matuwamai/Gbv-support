@@ -4,63 +4,57 @@ import { Authcontext } from "../context/authContext"; // Import AuthContext
 import axios from "axios";
 
 const PostCreation = () => {
-  const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
-  const [postText, setPostText] = useState<{ id: number; text: string }[]>([]);
+  const [selectedMedia, setSelectedMedia] = useState<File | null>(null); 
+  const [mediaPreview, setMediaPreview] = useState<string | null>(null); // ✅ Store preview separately
+  const [postText, setPostText] = useState<string>(""); // ✅ Use string instead of an array
 
   // Get current user from context
   const authContext = useContext(Authcontext);
   const currentUser = authContext?.currentUser;
 
+  // ✅ Handle media selection correctly
   const handleMediaSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const fileURL = URL.createObjectURL(file);
-      setSelectedMedia(fileURL);
+      setSelectedMedia(file); // Store the actual file
+      setMediaPreview(URL.createObjectURL(file)); // Create preview URL
     }
-  }; const handlePostSubmit = async () => {
+  };
+
+  // ✅ Handle post submission
+  const handlePostSubmit = async (e) => {
+    e.preventDefault();
+
     if (!currentUser?.id) {
       console.error("User not logged in.");
       return;
     }
-
-    console.log("Current User:", currentUser);
-    console.log("User ID being sent:", currentUser.id);
-
-    const formData = new FormData();
-    formData.append("content", postText);
-
-    if (selectedMedia) {
-      try {
-        const response = await fetch(selectedMedia);
-        const blob = await response.blob();
-        formData.append("media", blob, "uploadedMedia");
-      } catch (error) {
-        console.error("Error processing media:", error);
-        return;
+    
+      console.log("Current User:", currentUser);
+      console.log("User ID being sent:", currentUser.id);
+    
+      const formData = new FormData();
+      formData.append("content", postText);
+      formData.append("userId", currentUser.id.toString());
+    
+      if (selectedMedia) {
+        formData.append("mediaUrl", selectedMedia);
       }
-    }
-
-    try {
-      const response = await axios.post("http://localhost:5000/api/posts/", {
-          content: postText,
-          userId: currentUser.id, 
-      });
-
-      if (response.ok) {
-        console.log("Post created successfully");
-        setPostText("");
+    
+      try {
+        const response = await axios.post("http://localhost:5000/api/posts/", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+    
+        console.log("Post created successfully:", response.data);
+        setPostText(""); // ✅ Clear input
         setSelectedMedia(null);
-      } 
-      // else {
-      //   const errorData = await response.json();
-      //   console.error("Failed to create post:", errorData.message || "Unknown error");
-      // }
-    } catch (error) {
-      console.error("Error creating post:", error);
-    }
-  };
-  ;
-
+        setMediaPreview(null);
+      } catch (error) {
+        console.error("Error creating post:", error.response?.data || error);
+      }
+    };
+    
   return (
     <div className="flex flex-col items-center justify-center p-4 bg-gray-400 min-h-screen">
       <div className="w-full max-w-md bg-gray-800 p-4 rounded-2xl shadow-lg">
@@ -69,11 +63,11 @@ const PostCreation = () => {
           className="w-full h-40 sm:h-48 bg-gray-700 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-600 transition"
           onClick={() => document.getElementById("mediaInput")?.click()}
         >
-          {selectedMedia ? (
-            selectedMedia.endsWith(".mp4") || selectedMedia.endsWith(".webm") ? (
-              <video src={selectedMedia} controls className="w-full h-full rounded-lg" />
+          {mediaPreview ? (
+            mediaPreview.endsWith(".mp4") || mediaPreview.endsWith(".webm") ? (
+              <video src={mediaPreview} controls className="w-full h-full rounded-lg" />
             ) : (
-              <img src={selectedMedia} alt="Selected" className="w-full h-full object-cover rounded-lg" />
+              <img src={mediaPreview} alt="Selected" className="w-full h-full object-cover rounded-lg" />
             )
           ) : (
             <FaRegImage className="text-white text-3xl sm:text-4xl" />
