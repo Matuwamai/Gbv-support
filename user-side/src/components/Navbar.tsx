@@ -2,8 +2,6 @@ import { useState, useContext } from "react";
 import { Link } from "react-router-dom";
 import { Menu, X, PlusCircle, ShieldAlert, PhoneCall, User } from "lucide-react";
 import { Authcontext } from "../context/authContext";
-import { useDarkMode } from "../context/darkModeContext";
-import { Moon, Sun } from "lucide-react"; // Optional icons
 
 const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -11,7 +9,7 @@ const Navbar = () => {
     const authContext = useContext(Authcontext);
     const currentUser = authContext?.currentUser;
     console.log("Current User:", currentUser);
-    const { darkMode, toggleDarkMode } = useDarkMode();
+    
 
 
     return (
@@ -51,12 +49,7 @@ const Navbar = () => {
                         <div className="absolute right-0 mt-2 bg-white text-purple-600 font-bold shadow-lg rounded w-32">
                             <Link to="/profile" className="block px-4 py-2 hover:bg-gray-200">Profile</Link>
                             <button className="block w-full text-left px-4 py-2 hover:bg-gray-200">Logout</button>
-                            <button
-                                onClick={toggleDarkMode}
-                                className="p-2 rounded-lg bg-gray-200 dark:bg-gray-700"
-                            >
-                                {darkMode ? <Sun className="w-6 h-6" /> : <Moon className="w-6 h-6" />}
-                            </button>
+                            
                         </div>
                     )}
                 </div>

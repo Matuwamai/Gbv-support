@@ -112,7 +112,7 @@ const PostCard = ({ post }) => {
 
   const fetchReposts = async () => {
     try {
-      const response = await axios.get(`http://localhost:5000/apii/reposts/post/${post.id}`);
+      const response = await axios.get(`http://localhost:5000/api/reposts/post/${post.id}`);
       setReposts(response.data.reposts);
     } catch (error) {
       console.error("Error fetching reposts:", error);
