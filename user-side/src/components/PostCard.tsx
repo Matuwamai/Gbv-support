@@ -130,6 +130,7 @@ const PostCard = ({ post }) => {
           alt={post.user?.name || "User"}
           className="w-10 h-10 rounded-full mr-3"
         />
+
         <div>
           <span className="font-semibold text-gray-800">{post.user?.name}</span>
           <p className="text-sm text-gray-500">{post.timestamp}</p>

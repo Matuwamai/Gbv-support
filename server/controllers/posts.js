@@ -57,15 +57,21 @@ export const getAllPosts = async (req, res) => {
   try {
     const posts = await prisma.post.findMany({
       include: {
-        user: { select: { id: true, name: true, } }, // Include profile photo
+        user: { select: { id: true, name: true, profileImage: true } }, // Include profile photo
       },
       orderBy: { createdAt: "desc" },
     });
 
-    // Ensure full media URL
+    // Map over posts to add full URLs
     const updatedPosts = posts.map(post => ({
       ...post,
-      mediaUrl: post.media ? `${process.env.BASE_URL}/uploads/${post.media}` : null, // Adjust path
+      mediaUrl: post.mediaUrl ? `${process.env.BASE_URL}${post.mediaUrl}` : null,
+      user: {
+        ...post.user,
+        profileImage: post.user.profileImage 
+          ? `${process.env.BASE_URL}${post.user.profileImage}` 
+          : null,
+      },
     }));
 
     return res.status(200).json(updatedPosts);
@@ -74,7 +80,6 @@ export const getAllPosts = async (req, res) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
-
 
 // ✅ GET A SINGLE POST (INCLUDES MEDIA URL)
 export const getPostById = async (req, res) => {
@@ -87,17 +92,27 @@ export const getPostById = async (req, res) => {
 
     const post = await prisma.post.findUnique({
       where: { id },
-      include: { user: { select: { id: true, name: true } } },
+      include: { 
+        user: { 
+          select: { id: true, name: true, profileImage: true } 
+        } 
+      },
     });
 
     if (!post) {
       return res.status(404).json({ message: "Post not found" });
     }
 
-    // Add full media URL
+    // Ensure full URLs for profileImage and media
     const updatedPost = {
       ...post,
       media: post.media ? `${process.env.BASE_URL}${post.media}` : null,
+      user: {
+        ...post.user,
+        profileImage: post.user.profileImage 
+          ? `${process.env.BASE_URL}${post.user.profileImage}` 
+          : null,
+      },
     };
 
     return res.status(200).json(updatedPost);
@@ -106,6 +121,7 @@ export const getPostById = async (req, res) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
+
 
 // ✅ UPDATE A POST (INCLUDES MEDIA URL)
 export const updatePost = async (req, res) => {
