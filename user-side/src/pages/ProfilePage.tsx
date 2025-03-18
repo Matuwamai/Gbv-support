@@ -79,7 +79,7 @@ export default function ProfilePage() {
   
 
   return (
-    <div className={`min-h-screen p-6 ${darkMode ? "bg-gray-900 text-white" : "bg-white text-gray-900"}`}>
+    <div className={`min-h-screen p-6 ${darkMode ? "bg-gray-900 text-white" : "bg-white text-gray-900"} mt-6 mx-0`}>
       <div className="max-w-2xl mx-auto p-6 rounded-xl shadow-lg bg-gray-100 dark:bg-purple-800">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold">Profile</h2>
