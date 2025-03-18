@@ -1,7 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-
+import multer from "multer";
+import path from "path";
 const prisma = new PrismaClient();
 const SECRET_KEY = process.env.JWT_SECRET ; // Use env in production
 
@@ -109,7 +110,7 @@ export const deleteUser = async (req, res) => {
 export const getAllUsers = async (req, res) => {
   try {
     const users = await prisma.user.findMany({
-      select: { id: true, name: true, email: true, birthday: true, Gender: true,  createdAt: true },
+      select: { id: true, name: true, email: true, birthday: true, gender: true,  createdAt: true },
     });
 
     return res.status(200).json(users);
@@ -132,7 +133,16 @@ export const getUserById = async (req, res) => {
 
     const user = await prisma.user.findUnique({
       where: { id: userIdNum },
-      select: { id: true, name: true, email: true, birthday: true, Gender: true,  createdAt: true },
+      select: { 
+        id: true, 
+        name: true, 
+        email: true, 
+        birthday: true, 
+        gender: true, 
+        profileImage: true, // Include profile photo
+        contact: true,      // Include contact
+        createdAt: true 
+      },
     });
 
     if (!user) {
@@ -142,6 +152,59 @@ export const getUserById = async (req, res) => {
     return res.status(200).json(user);
   } catch (error) {
     console.error("Get User Error:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+// Multer setup for storing profile images
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/");
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}-${file.originalname}`);
+  },
+});
+
+const upload = multer({ storage });
+
+export const updateUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const userIdNum = parseInt(userId);
+
+    if (isNaN(userIdNum)) {
+      return res.status(400).json({ message: "Invalid user ID" });
+    }
+
+    const { contact } = req.body;
+    const profileImage = req.file ? `/uploads/${req.file.filename}` : null;
+
+    // Prepare update data
+    const updateData = { contact };
+    if (profileImage) {
+      updateData.profileImage = profileImage;
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userIdNum },
+      data: updateData,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        birthday: true,
+        gender: true,
+        profileImage: true,
+        contact: true,
+        createdAt: true,
+      },
+    });
+
+    return res.status(200).json(updatedUser);
+  } catch (error) {
+    console.error("Update User Error:", error);
     return res.status(500).json({ message: "Server error" });
   }
 };

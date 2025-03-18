@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Switch } from "@headlessui/react";
 import axios from "axios";
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 
 export default function ProfilePage() {
   const [darkMode, setDarkMode] = useState(false);
@@ -12,6 +13,7 @@ export default function ProfilePage() {
     contact: "",
     profileImage: "",
   });
+  const BASE_URL = "http://localhost:5000";
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewImage, setPreviewImage] = useState<string>("https://via.placeholder.com/100");
@@ -27,7 +29,7 @@ export default function ProfilePage() {
             const response = await axios.get(`http://localhost:5000/api/users/${parsedUser.id}`);
             setUser(response.data);
             if (response.data.profileImage) {
-              setPreviewImage(response.data.profileImage);
+              setPreviewImage(`${BASE_URL}${response.data.profileImage}`);
             }
           } catch (error) {
             console.error("Error fetching user data:", error);
@@ -91,11 +93,19 @@ export default function ProfilePage() {
         </div>
 
         <div className="flex flex-col items-center gap-4">
-          <label htmlFor="photo" className="cursor-pointer">
-            <img src={previewImage} alt="Profile" className="w-24 h-24 rounded-full border-4 border-gray-300 dark:border-gray-600" />
-          </label>
-          <input type="file" id="photo" className="hidden" onChange={handleImageChange} />
-        </div>
+      <label htmlFor="photo" className="cursor-pointer">
+      {previewImage || user.profileImage ? (
+          <img
+            src={previewImage || user.profileImage} // If an image exists, show it
+            alt="Profile"
+            className="w-24 h-24 rounded-full border-4 border-gray-300 dark:border-gray-600 object-cover"
+          />
+        ) : (
+          <AccountCircleIcon className="w-24 h-24 text-gray-400" /> // If no image, show MUI icon
+        )}
+      </label>
+      <input type="file" id="photo" className="hidden" onChange={handleImageChange} />
+    </div>
 
         <div className="mt-4 space-y-4">
           <div>

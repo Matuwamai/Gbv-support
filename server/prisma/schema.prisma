@@ -8,21 +8,22 @@ datasource db {
 }
 
 model User {
-  id         Int        @id @default(autoincrement())
-  name       String
-  email      String     @unique
-  password   String
-  role       Role       @default(USER)
-  birthday   DateTime   
-  gender     Gender     
-  contact    String     
-  posts      Post[]
-  comments   Comment[]
-  reactions  LikeDislike[]
-  reposts    Repost[]
-  cases      Case[]          // Cases reported by the user
+  id             Int             @id @default(autoincrement())
+  name           String
+  email          String          @unique
+  password       String
+  role           Role            @default(USER)
+  birthday       DateTime
+  gender         Gender
+  contact        String? // Optional contact field
+  profileImage   String? // Optional profile image   
+  posts          Post[]
+  comments       Comment[]
+  reactions      LikeDislike[]
+  reposts        Repost[]
+  cases          Case[] // Cases reported by the user
   emergencyCalls EmergencyCall[]
-  createdAt  DateTime   @default(now())
+  createdAt      DateTime        @default(now())
 }
 
 enum Gender {
@@ -32,85 +33,82 @@ enum Gender {
 }
 
 model Post {
-  id         Int          @id @default(autoincrement())
-  user       User         @relation(fields: [userId], references: [id])
-  userId     Int
-  content    String
-  mediaUrl   String?
-  status     PostStatus   @default(ACTIVE)
-  comments   Comment[]
-  reactions  LikeDislike[]
-  reposts    Repost[]
-  case       Case?
-  createdAt  DateTime     @default(now())
+  id        Int           @id @default(autoincrement())
+  user      User          @relation(fields: [userId], references: [id])
+  userId    Int
+  content   String
+  mediaUrl  String?
+  status    PostStatus    @default(ACTIVE)
+  comments  Comment[]
+  reactions LikeDislike[]
+  reposts   Repost[]
+  createdAt DateTime      @default(now())
 }
 
 model Comment {
-  id        Int       @id @default(autoincrement())
-  post      Post      @relation(fields: [postId], references: [id])
+  id        Int           @id @default(autoincrement())
+  post      Post          @relation(fields: [postId], references: [id])
   postId    Int
-  user      User      @relation(fields: [userId], references: [id])
+  user      User          @relation(fields: [userId], references: [id])
   userId    Int
   content   String
-  parent    Comment?  @relation("CommentToComment", fields: [parentId], references: [id])
+  parent    Comment?      @relation("CommentToComment", fields: [parentId], references: [id])
   parentId  Int?
-  children  Comment[] @relation("CommentToComment")
-  reactions LikeDislike[] @relation("CommentReactions")  // Fix missing relation
-  createdAt DateTime  @default(now())
+  children  Comment[]     @relation("CommentToComment")
+  reactions LikeDislike[] // Fix missing relation
+  createdAt DateTime      @default(now())
 }
 
 model LikeDislike {
-  id        Int     @id @default(autoincrement())
-  user      User    @relation(fields: [userId], references: [id])
+  id        Int          @id @default(autoincrement())
+  user      User         @relation(fields: [userId], references: [id])
   userId    Int
-  post      Post?   @relation(fields: [postId], references: [id]) // Nullable
-  postId    Int?
-  comment   Comment? @relation(fields: [commentId], references: [id]) // Nullable
+  post      Post?        @relation(fields: [postId], references: [id]) // Nullable
+  postId    Int?         @unique
+  comment   Comment?     @relation(fields: [commentId], references: [id]) // Nullable
   commentId Int?
   reaction  ReactionType // Use the enum
-  createdAt DateTime @default(now())
+  createdAt DateTime     @default(now())
 
   @@unique([userId, postId, commentId]) // Ensure user reacts only once per post/comment
 }
 
 model Repost {
-  id        Int       @id @default(autoincrement())
-  user      User      @relation(fields: [userId], references: [id])
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
   userId    Int
-  post      Post      @relation(fields: [postId], references: [id])
+  post      Post     @relation(fields: [postId], references: [id])
   postId    Int
-  createdAt DateTime  @default(now())
+  createdAt DateTime @default(now())
 }
 
 model Case {
-  id          Int        @id @default(autoincrement())
-  user        User       @relation(fields: [userId], references: [id])
-  userId      Int
-  post        Post       @relation(fields: [postId], references: [id])
-  postId      Int
-  status      CaseStatus @default(PENDING)
-  assignedTo  Authority? @relation(fields: [assignedToId], references: [id])
+  id           Int        @id @default(autoincrement())
+  user         User       @relation(fields: [userId], references: [id])
+  userId       Int
+  status       CaseStatus @default(PENDING)
+  assignedTo   Authority? @relation(fields: [assignedToId], references: [id])
   assignedToId Int?
-  createdAt   DateTime   @default(now())
+  createdAt    DateTime   @default(now())
 }
 
 model EmergencyCall {
-  id          Int        @id @default(autoincrement())
-  user        User?      @relation(fields: [userId], references: [id])
-  userId      Int?
-  phoneNumber String     @unique
-  issueType   IssueType
+  id           Int       @id @default(autoincrement())
+  user         User?     @relation(fields: [userId], references: [id]) 
+  userId       Int?
+  phoneNumber  String    @unique
+  issueType    IssueType
   redirectedTo String
-  timestamp   DateTime   @default(now())
+  timestamp    DateTime  @default(now())
 }
 
 model Authority {
-  id        Int           @id @default(autoincrement())
-  name      String
-  contact   String
-  location  String
-  category  AuthorityType
-  cases     Case[]
+  id       Int           @id @default(autoincrement())
+  name     String
+  contact  String
+  location String
+  category AuthorityType
+  cases    Case[]
 }
 
 enum Role {

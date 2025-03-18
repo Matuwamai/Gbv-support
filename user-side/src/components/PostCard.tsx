@@ -126,7 +126,7 @@ const PostCard = ({ post }) => {
       {/* Post Owner */}
       <div className="flex items-center mb-2">
         <img
-          src={post.user?.profilePhoto || "/default-profile.png"}
+          src={post.user?.profileImage || "/default-profile.png"}
           alt={post.user?.name || "User"}
           className="w-10 h-10 rounded-full mr-3"
         />
