@@ -36,34 +36,46 @@ export const getCommentsForPost = async (req, res) => {
   try {
     const { postId } = req.params;
 
-    // Check if post exists
     const post = await prisma.post.findUnique({ where: { id: parseInt(postId) } });
     if (!post) {
       return res.status(404).json({ message: "Post not found" });
     }
 
-    // Get comments
     const comments = await prisma.comment.findMany({
       where: { postId: parseInt(postId) },
-      include: { user: { select: { id: true, name: true } } },
+      include: { 
+        user: { 
+          select: { id: true, name: true, profileImage: true } 
+        } 
+      },
       orderBy: { createdAt: "asc" },
     });
 
-    return res.status(200).json(comments);
+    // Ensure full URL for profile images
+    const updatedComments = comments.map(comment => ({
+      ...comment,
+      user: {
+        ...comment.user,
+        profileImage: comment.user.profileImage 
+          ? `${process.env.BASE_URL}${comment.user.profileImage}` 
+          : null,
+      }
+    }));
+
+    return res.status(200).json(updatedComments);
   } catch (error) {
     console.error("Get Comments Error:", error);
     return res.status(500).json({ message: "Server error" });
   }
 };
 
-// ✅ GET A SINGLE COMMENT BY ID
 export const getCommentById = async (req, res) => {
   try {
     const { commentId } = req.params;
 
     const comment = await prisma.comment.findUnique({
       where: { id: parseInt(commentId) },
-      include: { user: { select: { id: true, name: true } } },
+      include: { user: { select: { id: true, name: true, profileImage: true } } },
     });
 
     if (!comment) {
@@ -76,6 +88,7 @@ export const getCommentById = async (req, res) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
+
 
 // ✅ UPDATE A COMMENT
 export const updateComment = async (req, res) => {

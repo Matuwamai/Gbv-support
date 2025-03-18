@@ -203,9 +203,9 @@ const PostCard = ({ post }) => {
         {(showAllComments ? comments : comments.slice(0, 2)).map((comment, index) => (
           <div key={index} className="flex items-start mt-2">
             <img
-              src={comment.user?.profilePhoto || "/default-profile.png"}
-              alt={comment.user?.name}
-              className="w-8 h-8 rounded-full mr-2"
+              src={comment.user?.profileImage || "/default-profile.png"}
+              alt={comment.user?.name || "User"}
+              className="w-8 h-8 rounded-full"
             />
             <div className="bg-gray-100 p-2 rounded-lg w-full">
               <p className="text-xs font-semibold text-gray-800">{comment.user?.name}</p>
