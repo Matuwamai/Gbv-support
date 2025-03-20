@@ -43,6 +43,7 @@ model Post {
   reactions LikeDislike[]
   reposts   Repost[]
   createdAt DateTime      @default(now())
+  cases     Case[]        @relation("PostCases") // Create the reverse relation from Post to Case
 }
 
 model Comment {
@@ -90,6 +91,8 @@ model Case {
   assignedTo   Authority? @relation(fields: [assignedToId], references: [id])
   assignedToId Int?
   createdAt    DateTime   @default(now())
+   post         Post       @relation(fields: [postId], references: [id], name: "PostCases") // Add the same relation name
+  postId       Int        // Foreign key to Post
 }
 
 model EmergencyCall {

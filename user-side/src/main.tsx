@@ -12,7 +12,7 @@ import NewPost from "./components/Createpost";
 import ProfilePage from "./pages/ProfilePage";
 import Dashboard from "./pages/Dahboard";
 import EmergencyPage from "./pages/Emergencycall";
-
+import CasePage from "./pages/CasesPage";
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <AuthContextProvider>
@@ -29,6 +29,7 @@ createRoot(document.getElementById("root")!).render(
                 <Route path="/newpost" element={<NewPost />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/emergency" element={<EmergencyPage />} />
+                <Route path="/cases" element={<CasePage />} />
               </Route>
             </Route>
 
