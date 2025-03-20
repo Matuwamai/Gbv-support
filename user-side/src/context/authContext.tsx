@@ -2,14 +2,13 @@ import { createContext, useEffect, useState, ReactNode } from "react";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 
-// Define the type for the auth context
+
 interface AuthContextType {
   currentUser: { id: string; fullName: string; token: string } | null;
   login: (inputs: { email: string; password: string }) => Promise<void>;
   logout: () => void;
 }
-
-// Create the Auth context
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 export const Authcontext = createContext<AuthContextType | null>(null);
 
 export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
@@ -17,21 +16,19 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
     localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")!) : null
   );
 
-  // Login function
   const login = async (inputs: { email: string; password: string }) => {
     try {
-      const res = await axios.post("http://localhost:5000/api/users/login", inputs);
+      const res = await axios.post(`${API_BASE_URL}/users/login`, inputs);
 
-      console.log("Login Response:", res.data); // Debugging
+      console.log("Login Response:", res.data);
 
-      const decodedToken: any = jwtDecode(res.data.token); // Decode JWT
+      const decodedToken: any = jwtDecode(res.data.token);
 
-      console.log("Decoded Token:", decodedToken); // Debugging
+      console.log("Decoded Token:", decodedToken); 
 
-      // Ensure backend sends `user` object
       const userData = {
-        id: res.data.user.id, // ✅ Corrected
-        name: res.data.user.name, // ✅ Ensure backend sends `fullName`
+        id: res.data.user.id,
+        name: res.data.user.name,
         token: res.data.token,
       };
 
@@ -42,14 +39,11 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Logout function
   const logout = async () => {
-    await axios.post("http://localhost:5000/api/users/logout");
+    await axios.post(`${API_BASE_URL}/users/logout`);
     setCurrentUser(null);
     localStorage.removeItem("user");
   };
-
-  // Ensure user data persists across refreshes
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {

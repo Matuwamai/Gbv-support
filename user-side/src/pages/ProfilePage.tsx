@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { Switch } from "@headlessui/react";
 import axios from "axios";
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 
 export default function ProfilePage() {
   const [darkMode, setDarkMode] = useState(false);
@@ -13,12 +15,9 @@ export default function ProfilePage() {
     contact: "",
     profileImage: "",
   });
-  const BASE_URL = "http://localhost:5000";
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewImage, setPreviewImage] = useState<string>("https://via.placeholder.com/100");
-
-  // Fetch user details when component mounts
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
@@ -26,10 +25,10 @@ export default function ProfilePage() {
       if (parsedUser.id) {
         async function fetchUserData() {
           try {
-            const response = await axios.get(`http://localhost:5000/api/users/${parsedUser.id}`);
+            const response = await axios.get(`${API_BASE_URL}/users/${parsedUser.id}`);
             setUser(response.data);
             if (response.data.profileImage) {
-              setPreviewImage(`${BASE_URL}${response.data.profileImage}`);
+              setPreviewImage(`${API_BASE_URL}${response.data.profileImage}`);
             }
           } catch (error) {
             console.error("Error fetching user data:", error);
@@ -39,17 +38,14 @@ export default function ProfilePage() {
       }
     }
   }, []);
-  
-  // Handle profile image selection
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       setSelectedFile(file);
-      setPreviewImage(URL.createObjectURL(file)); // Show preview
+      setPreviewImage(URL.createObjectURL(file)); 
     }
   };
 
-  // Handle form submission (send only profile photo & contact)
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     
@@ -68,7 +64,7 @@ export default function ProfilePage() {
     }
   
     try {
-      await axios.put(`http://localhost:5000/api/users/${parsedUser.id}`, formData, {
+      await axios.put(`${API_BASE_URL}/users/${parsedUser.id}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       alert("Profile updated successfully!");
@@ -96,12 +92,12 @@ export default function ProfilePage() {
       <label htmlFor="photo" className="cursor-pointer">
       {previewImage || user.profileImage ? (
           <img
-            src={previewImage || user.profileImage} // If an image exists, show it
+            src={previewImage || user.profileImage} 
             alt="Profile"
             className="w-24 h-24 rounded-full border-4 border-gray-300 dark:border-gray-600 object-cover"
           />
         ) : (
-          <AccountCircleIcon className="w-24 h-24 text-gray-400" /> // If no image, show MUI icon
+          <AccountCircleIcon className="w-24 h-24 text-gray-400" /> 
         )}
       </label>
       <input type="file" id="photo" className="hidden" onChange={handleImageChange} />

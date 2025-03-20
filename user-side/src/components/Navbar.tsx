@@ -11,12 +11,9 @@ const Navbar = () => {
     return (
         <nav className="bg-purple-600 text-white p-3 shadow-md fixed top-0 w-full z-50">
             <div className="container mx-auto flex justify-between items-center">
-                {/* Logo */}
                 <a href="/" className="text-lg font-bold md:text-xl">
                     GBV<span className="hidden md:inline"> Support</span>
                 </a>
-
-                {/* Menu Items */}
                 <ul className="flex items-center gap-4 text-sm md:text-base">
                     <li className="flex items-center gap-1">
                         <PlusCircle size={18} />
@@ -32,7 +29,6 @@ const Navbar = () => {
                     </li>
                 </ul>
 
-                {/* Account Dropdown */}
                 <div className="relative">
                     <button onClick={() => setDropdownOpen(!dropdownOpen)} className="flex items-center gap-1 hover:text-gray-200">
                         <User size={20} />

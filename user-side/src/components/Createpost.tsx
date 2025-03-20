@@ -1,27 +1,25 @@
 import React, { useState, useContext } from "react";
 import { FaRegImage } from "react-icons/fa";
-import { Authcontext } from "../context/authContext"; // Import AuthContext
+import { Authcontext } from "../context/authContext"; 
 import axios from "axios";
 
 const PostCreation = () => {
   const [selectedMedia, setSelectedMedia] = useState<File | null>(null); 
-  const [mediaPreview, setMediaPreview] = useState<string | null>(null); // ✅ Store preview separately
-  const [postText, setPostText] = useState<string>(""); // ✅ Use string instead of an array
+  const [mediaPreview, setMediaPreview] = useState<string | null>(null); 
+  const [postText, setPostText] = useState<string>(""); 
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-  // Get current user from context
   const authContext = useContext(Authcontext);
   const currentUser = authContext?.currentUser;
 
-  // ✅ Handle media selection correctly
   const handleMediaSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      setSelectedMedia(file); // Store the actual file
-      setMediaPreview(URL.createObjectURL(file)); // Create preview URL
+      setSelectedMedia(file); 
+      setMediaPreview(URL.createObjectURL(file));
     }
   };
 
-  // ✅ Handle post submission
   const handlePostSubmit = async (e) => {
     e.preventDefault();
 
@@ -42,12 +40,12 @@ const PostCreation = () => {
       }
     
       try {
-        const response = await axios.post("http://localhost:5000/api/posts/", formData, {
+        const response = await axios.post(`${API_BASE_URL}/posts/`, formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
     
         console.log("Post created successfully:", response.data);
-        setPostText(""); // ✅ Clear input
+        setPostText(""); 
         setSelectedMedia(null);
         setMediaPreview(null);
       } catch (error) {
@@ -58,7 +56,6 @@ const PostCreation = () => {
   return (
     <div className="flex flex-col items-center justify-center p-4  min-h-screen mt-6">
       <div className="w-full max-w-md bg-gray-800 p-4 rounded-2xl shadow-lg">
-        {/* Media Upload Section */}
         <div
           className="w-full h-40 sm:h-48 bg-gray-700 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-600 transition"
           onClick={() => document.getElementById("mediaInput")?.click()}
@@ -81,8 +78,6 @@ const PostCreation = () => {
           className="hidden"
           onChange={handleMediaSelect}
         />
-
-        {/* Text Input */}
         <textarea
           className="w-full mt-4 p-2 bg-gray-700 text-white rounded-lg focus:outline-none resize-none text-sm sm:text-base"
           rows={3}
@@ -90,8 +85,6 @@ const PostCreation = () => {
           value={postText}
           onChange={(e) => setPostText(e.target.value)}
         ></textarea>
-
-        {/* Post Button */}
         <button
           className="w-full mt-4 bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 transition text-sm sm:text-base"
           onClick={handlePostSubmit}

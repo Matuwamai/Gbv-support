@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthContextProvider } from "./context/authContext";
 import { DarkModeProvider } from "./context/darkModeContext";
-import ProtectedRoute from "./components/protectedRoute"; // ✅ Import the fixed component
+import ProtectedRoute from "./components/protectedRoute"; 
 import SignUp from "./pages/singup";
 import "./index.css";
 import Login from "./pages/login";
@@ -21,8 +21,6 @@ createRoot(document.getElementById("root")!).render(
           <Routes>
             <Route path="/signup" element={<SignUp />} />
             <Route path="/login" element={<Login />} />
-
-            {/* ✅ Wrap protected routes inside <ProtectedRoute> */}
             <Route element={<ProtectedRoute />}>
               <Route element={<Layout />}>
                 <Route path="/" element={<Dashboard />} />

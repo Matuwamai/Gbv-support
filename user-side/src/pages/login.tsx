@@ -11,8 +11,7 @@ const Login = () => {
     return <div>Error: AuthContext is missing</div>;
   }
 
-  const { login } = authContext; // ✅ Ensure context exists before using login
-
+  const { login } = authContext; 
   const [formData, setFormData] = useState({
     email: "",
     password: "",

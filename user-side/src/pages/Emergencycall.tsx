@@ -6,6 +6,7 @@ const EmergencyPage = () => {
   const [issueType, setIssueType] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const handleCall = async () => {
     if (!phoneNumber || !issueType) {
@@ -17,7 +18,7 @@ const EmergencyPage = () => {
     setMessage("");
 
     try {
-      const response = await axios.post("http://localhost:5000/api/calls/call", {
+      const response = await axios.post(`${API_BASE_URL}/calls/call`, {
         phoneNumber,
         issueType,
       });

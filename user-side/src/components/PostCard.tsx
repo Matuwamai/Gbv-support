@@ -20,10 +20,10 @@ const PostCard = ({ post }) => {
   const [reposts, setReposts] = useState(0);
   const [showCommentInput, setShowCommentInput] = useState(false);
   const [showAllComments, setShowAllComments] = useState(false);
-  const [reposted, setReposted] = useState(false); // Track if user has reposted
+  const [reposted, setReposted] = useState(false);
 
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-  // Handle Like
   const handleLike = async () => {
     if (!currentUser) {
       console.error("User not logged in");
@@ -31,7 +31,7 @@ const PostCard = ({ post }) => {
     }
 
     try {
-      const response = await axios.post(`http://localhost:5000/api/likes/`, {
+      const response = await axios.post(`${API_BASE_URL}/likes/`, {
         userId: currentUser.id,
         postId: post.id,
         reaction: "LIKE",
@@ -51,19 +51,18 @@ const PostCard = ({ post }) => {
     }
 
     try {
-      const response = await axios.post(`http://localhost:5000/api/reposts/`, {
+      const response = await axios.post(`${API_BASE_URL}/reposts/`, {
         userId: currentUser.id,
         postId: post.id,
       });
 
       console.log("Post reposted successfully:", response.data);
-      setReposted(true); // Update state if needed
+      setReposted(true);
     } catch (error) {
       console.error("Error reposting post:", error);
     }
   };
 
-  // Handle Comment Posting
   const handleComment = async () => {
     if (!newComment.trim()) return;
 
@@ -74,7 +73,7 @@ const PostCard = ({ post }) => {
     };
 
     try {
-      const response = await axios.post("http://localhost:5000/api/comments", commentData);
+      const response = await axios.post(`${API_BASE_URL}/comments`, commentData);
       setComments([...comments, response.data]);
       setNewComment("");
     } catch (error) {
@@ -83,13 +82,12 @@ const PostCard = ({ post }) => {
   };
   useEffect(() => {
     fetchLikes();
-    // fetchComments();
     fetchReposts();
   }, []);
 
   const fetchLikes = async () => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/likes/${post.id}`);
+      const response = await axios.get(`${API_BASE_URL}/likes/${post.id}`);
       setLikes(response.data.likes);
     } catch (error) {
       console.error("Error fetching likes:", error);
@@ -98,11 +96,11 @@ const PostCard = ({ post }) => {
   useEffect(() => {
     const fetchComments = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/comments/${post.id} `);
-        setComments(response.data || []); // Ensure it's an array
+        const response = await axios.get(`${API_BASE_URL}/comments/${post.id} `);
+        setComments(response.data || []); 
       } catch (error) {
         console.error("Error fetching comments:", error);
-        setComments([]); // Set fallback value
+        setComments([]); 
       }
     };
 
@@ -112,7 +110,7 @@ const PostCard = ({ post }) => {
 
   const fetchReposts = async () => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/reposts/post/${post.id}`);
+      const response = await axios.get(`${API_BASE_URL}/reposts/post/${post.id}`);
       setReposts(response.data.reposts);
     } catch (error) {
       console.error("Error fetching reposts:", error);
@@ -123,7 +121,6 @@ const PostCard = ({ post }) => {
 
   return (
     <div className="bg-white shadow-lg rounded-lg p-4 mb-4 w-full max-w-xl border border-gray-300">
-      {/* Post Owner */}
       <div className="flex items-center mb-2">
         <img
           src={post.user?.profileImage || "/default-profile.png"}
@@ -136,8 +133,6 @@ const PostCard = ({ post }) => {
           <p className="text-sm text-gray-500">{post.timestamp}</p>
         </div>
       </div>
-
-      {/* Post Media */}
       {post.mediaUrl && (
         post.mediaUrl.endsWith(".mp4") ? (
           <video controls className="w-full rounded-lg mb-2">
@@ -148,11 +143,8 @@ const PostCard = ({ post }) => {
         )
       )}
 
-
-      {/* Post Content */}
       {post.content && <p className="text-gray-700 mb-2">{post.content}</p>}
 
-      {/* Post Stats */}
       <div className="flex justify-between text-sm text-gray-500 border-t pt-2">
         <span>{likes} Likes</span>
         {comments && Array.isArray(comments) ? (
@@ -167,7 +159,6 @@ const PostCard = ({ post }) => {
 
       </div>
 
-      {/* Action Buttons */}
       <div className="flex justify-around text-purple-600 mt-2 border-t pt-2">
         <button onClick={handleLike} className={`hover:text-blue-500 ${liked && "text-blue-500"}`}>
           <ThumbUpIcon />
@@ -181,7 +172,6 @@ const PostCard = ({ post }) => {
 
       </div>
 
-      {/* Comment Input Field */}
       {showCommentInput && (
         <div className="mt-2 flex">
           <input
@@ -197,7 +187,6 @@ const PostCard = ({ post }) => {
         </div>
       )}
 
-      {/* Comments Section */}
       <div className="mt-4 border-t pt-2 max-h-40 overflow-y-auto">
         <h3 className="text-sm font-semibold text-gray-700">Comments ({comments.length})</h3>
         {(showAllComments ? comments : comments.slice(0, 2)).map((comment, index) => (

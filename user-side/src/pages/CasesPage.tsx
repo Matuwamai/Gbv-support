@@ -4,11 +4,12 @@ const CasePage = () => {
   const [cases, setCases] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   useEffect(() => {
     const fetchCases = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/cases");
+        const response = await fetch(`${API_BASE_URL}/api/cases`);
         if (!response.ok) {
           throw new Error("Failed to fetch cases");
         }

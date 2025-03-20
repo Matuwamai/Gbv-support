@@ -11,6 +11,7 @@ const Dashboard = () => {
     likes: number;
     comments: { id: string; text: string; user: string }[];
   };
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   
   const [posts, setPosts] = useState<PostType[]>([]);
 
@@ -22,7 +23,7 @@ const Dashboard = () => {
 
   const fetchPosts = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/posts/");
+      const response = await axios.get(`${API_BASE_URL}/posts/`);
       setPosts(response.data);
     } catch (error) {
       console.error("Error fetching posts:", error);
@@ -33,7 +34,7 @@ const Dashboard = () => {
 
   const handleLike = async (postId) => {
     try {
-      await axios.post(`http://localhost:5000/api/likes/${postId}`);
+      await axios.post(`${API_BASE_URL}/likes/${postId}`);
       setPosts((prevPosts) =>
         prevPosts.map((post) =>
           post.id === postId ? { ...post, likes: post.likes + 1 } : post
@@ -46,7 +47,7 @@ const Dashboard = () => {
 
   const handleComment = async (postId, commentText) => {
     try {
-      const response = await axios.post(`http://localhost:5000/api/comments/${postId}`, {
+      const response = await axios.post(`${API_BASE_URL}/comments/${postId}`, {
         text: commentText,
       });
       setPosts((prevPosts) =>
