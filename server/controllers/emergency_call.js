@@ -1,69 +1,54 @@
-import { PrismaClient } from "@prisma/client";
-import { createRequire } from "module";
+import twilio from "twilio";
+import dotenv from "dotenv";
 
-const prisma = new PrismaClient();
-const require = createRequire(import.meta.url);
+dotenv.config();
 
-// Import Africa's Talking using CommonJS
-const africastalking = require("africastalking")({
-  apiKey: process.env.AT_API_KEY,
-  username: process.env.AT_USERNAME,
-});
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
+const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER;
 
-// Access the Voice service using the correct property key
-const voice = africastalking.VOICE;
-if (!voice) {
-  throw new Error("Voice service is not available. Check your credentials, account, or SDK version.");
-}
+const client = twilio(accountSid, authToken);
 
-export const initiateEmergencyCall = async (req, res) => {
+// Predefined emergency numbers for different issue types
+const EMERGENCY_ROUTES = {
+  SEXUAL_HARASSMENT: "+15102413544", // Replace with the actual support line
+  DOMESTIC_VIOLENCE: "+15102413544", // Replace with the actual support line
+  OTHER: "+15102413544", // Generic support line
+};
+
+export const makeEmergencyCall = async (req, res) => {
   try {
     const { phoneNumber, issueType } = req.body;
+
+    // Validate input
     if (!phoneNumber || !issueType) {
-      return res.status(400).json({ error: "Missing required fields" });
+      return res.status(400).json({ error: "Phone number and issue type are required" });
     }
 
-    // Determine destination number based on issue type
-    let destinationNumber;
-    if (issueType === "SEXUAL_HARASSMENT") {
-      destinationNumber = process.env.POLICE_NUMBER;
-    } else if (issueType === "DOMESTIC_VIOLENCE") {
-      destinationNumber = process.env.HEALTHCARE_NUMBER;
-    } else {
-      destinationNumber = process.env.OTHER_NUMBER;
+    // Check if issueType is valid
+    if (!EMERGENCY_ROUTES[issueType]) {
+      return res.status(400).json({ error: "Invalid issue type" });
     }
 
-    // Options for Africa's Talking call initiation
-    const options = {
-      callFrom: process.env.AT_CALL_FROM, // Your registered caller ID
-      callTo: destinationNumber,
-    };
+    const sanitizedPhoneNumber = `+${phoneNumber.replace(/\D/g, "")}`;
+    const emergencyContact = EMERGENCY_ROUTES[issueType];
 
-    // Wrap the callback-based API in a promise
-    const atResponse = await new Promise((resolve, reject) => {
-      voice.call(options, (err, response) => {
-        if (err) return reject(err);
-        resolve(response);
-      });
-    });
-    console.log("Africa's Talking Response:", atResponse);
+    console.log(`Calling from: ${twilioPhoneNumber} to: ${sanitizedPhoneNumber} for issue: ${issueType}`);
 
-    // Record the emergency call in your database
-    const emergencyCall = await prisma.emergencyCall.create({
-      data: {
-        phoneNumber,
-        issueType,
-        redirectedTo: destinationNumber,
-      },
+    // Initiate Twilio call
+    const call = await client.calls.create({
+      url: "http://demo.twilio.com/docs/voice.xml", // Change to a custom TwiML Bin URL
+      to: emergencyContact,
+      from: twilioPhoneNumber,
     });
 
-    return res.status(200).json({
-      message: "Emergency call initiated successfully",
-      atResponse,
-      emergencyCall,
+    return res.status(200).json({ 
+      message: `Emergency call initiated to ${issueType} support line`, 
+      callSid: call.sid 
     });
+
   } catch (error) {
-    console.error("Emergency Call Error:", error);
-    return res.status(500).json({ error: "Internal Server Error" });
+    console.error("Twilio Call Error:", error);
+    return res.status(500).json({ error: "Failed to make a call", details: error.message });
   }
 };
