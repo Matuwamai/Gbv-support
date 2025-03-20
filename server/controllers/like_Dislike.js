@@ -3,8 +3,7 @@ const prisma = new PrismaClient();
 
 export const likeOrDislikePost = async (req, res) => {
     try {
-      const { userId, postId, reaction } = req.body; // Use "reaction" instead of "type"
-  
+      const { userId, postId, reaction } = req.body; 
       if (!userId || !postId || !reaction) {
         return res.status(400).json({ error: "Missing required fields" });
       }
@@ -19,7 +18,7 @@ export const likeOrDislikePost = async (req, res) => {
       }
   
       const newReaction = await prisma.likeDislike.create({
-        data: { userId, postId, reaction }, // Use "reaction"
+        data: { userId, postId, reaction }, 
       });
   
       res.status(201).json(newReaction);
@@ -38,8 +37,6 @@ export const likeOrDislikePost = async (req, res) => {
       }
   
       const postIdInt = parseInt(postId);
-  
-      // Count likes and dislikes
       const likes = await prisma.likeDislike.count({
         where: { postId: postIdInt, reaction: "LIKE" },
       });

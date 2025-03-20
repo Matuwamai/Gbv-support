@@ -3,7 +3,6 @@ import { createComment, getCommentsForPost, getCommentById, updateComment, delet
 
 const router = express.Router();
 
-// Routes
 router.post("/", createComment);
 router.get("/:postId", getCommentsForPost);
 router.get("/single/:commentId", getCommentById);

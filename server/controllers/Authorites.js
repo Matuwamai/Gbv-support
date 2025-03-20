@@ -1,7 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
-// Create a new Authority
 export const createAuthority = async (req, res) => {
   try {
     const { name, contact, location, category } = req.body;
@@ -21,8 +20,6 @@ export const createAuthority = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
-// Get all Authorities
 export const getAllAuthorities = async (req, res) => {
   try {
     const authorities = await prisma.authority.findMany({
@@ -34,8 +31,6 @@ export const getAllAuthorities = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
-// Get a single Authority by ID
 export const getAuthorityById = async (req, res) => {
   try {
     const { authorityId } = req.params;
@@ -51,8 +46,6 @@ export const getAuthorityById = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
-// Update an Authority
 export const updateAuthority = async (req, res) => {
   try {
     const { authorityId } = req.params;
@@ -71,8 +64,6 @@ export const updateAuthority = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
-// Delete an Authority
 export const deleteAuthority = async (req, res) => {
   try {
     const { authorityId } = req.params;

@@ -8,20 +8,14 @@ export const createCase = async (req, res) => {
     if (!userId || !postId) {
       return res.status(400).json({ error: "Missing required fields: userId and postId" });
     }
-
-    // Validate that the user exists
     const userExists = await prisma.user.findUnique({ where: { id: userId } });
     if (!userExists) {
       return res.status(404).json({ error: "User not found" });
     }
-
-    // Validate that the post exists
     const postExists = await prisma.post.findUnique({ where: { id: postId } });
     if (!postExists) {
       return res.status(404).json({ error: "Post not found" });
     }
-
-    // Create the case (status will default to PENDING)
     const newCase = await prisma.case.create({
       data: { 
         userId, 
@@ -89,8 +83,6 @@ export const updateCase = async (req, res) => {
       }
   
       const { status, assignedToId } = req.body;
-  
-      // Validate assignedToId if provided
       if (assignedToId !== undefined && assignedToId !== null) {
         const authorityExists = await prisma.authority.findUnique({
           where: { id: assignedToId },
@@ -111,16 +103,12 @@ export const updateCase = async (req, res) => {
       return res.status(500).json({ error: "Internal Server Error" });
     }
   };
-  
-// ✅ Delete a Case
 export const deleteCase = async (req, res) => {
   try {
     const { caseId } = req.params;
     if (!caseId || isNaN(caseId)) {
       return res.status(400).json({ error: "Invalid case ID" });
     }
-
-    // Verify the case exists
     const existingCase = await prisma.case.findUnique({ where: { id: parseInt(caseId) } });
     if (!existingCase) {
       return res.status(404).json({ error: "Case not found" });

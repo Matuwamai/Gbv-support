@@ -3,43 +3,33 @@ import multer from "multer";
 import path from "path";
 
 const prisma = new PrismaClient();
-
-// ✅ MULTER CONFIGURATION FOR FILE UPLOADS
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/"); // Ensure the 'uploads' folder exists
+    cb(null, "uploads/"); 
   },
   filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname)); // Unique filename
+    cb(null, Date.now() + path.extname(file.originalname)); 
   },
 });
 
 const upload = multer({ storage }).single("mediaUrl");
-
-// ✅ CREATE A NEW POST (WITH MEDIA SUPPORT)
 export const createPost = async (req, res) => {
   try {
     const { content, userId } = req.body;
 
     console.log("User ID:", userId);
-
-    // Validate userId
     if (!userId || isNaN(parseInt(userId, 10))) {
       return res.status(400).json({ message: "Invalid or missing userId" });
     }
 
     const numericUserId = parseInt(userId, 10);
 
-    // Check if user exists
     const user = await prisma.user.findUnique({ where: { id: numericUserId } });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-
-    // ✅ Ensure media URL is correctly stored
     const mediaUrl = req.file ? `/uploads/${req.file.filename}` : null;
 
-    // Create post
     const post = await prisma.post.create({
       data: { content, userId: numericUserId, mediaUrl: mediaUrl },
     });
@@ -50,19 +40,14 @@ export const createPost = async (req, res) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
-
-
-// ✅ GET ALL POSTS (WITH IMAGES INCLUDED)
 export const getAllPosts = async (req, res) => {
   try {
     const posts = await prisma.post.findMany({
       include: {
-        user: { select: { id: true, name: true, profileImage: true } }, // Include profile photo
+        user: { select: { id: true, name: true, profileImage: true } }, 
       },
       orderBy: { createdAt: "desc" },
     });
-
-    // Map over posts to add full URLs
     const updatedPosts = posts.map(post => ({
       ...post,
       mediaUrl: post.mediaUrl ? `${process.env.BASE_URL}${post.mediaUrl}` : null,
@@ -80,8 +65,6 @@ export const getAllPosts = async (req, res) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
-
-// ✅ GET A SINGLE POST (INCLUDES MEDIA URL)
 export const getPostById = async (req, res) => {
   try {
     const { postId } = req.params;
@@ -102,8 +85,6 @@ export const getPostById = async (req, res) => {
     if (!post) {
       return res.status(404).json({ message: "Post not found" });
     }
-
-    // Ensure full URLs for profileImage and media
     const updatedPost = {
       ...post,
       media: post.media ? `${process.env.BASE_URL}${post.media}` : null,
@@ -121,9 +102,6 @@ export const getPostById = async (req, res) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
-
-
-// ✅ UPDATE A POST (INCLUDES MEDIA URL)
 export const updatePost = async (req, res) => {
   try {
     const { postId } = req.params;
@@ -138,8 +116,6 @@ export const updatePost = async (req, res) => {
       where: { id: parseInt(postId, 10) },
       data: { content },
     });
-
-    // Add full media URL
     const formattedPost = {
       ...updatedPost,
       media: updatedPost.media ? `${process.env.BASE_URL}${updatedPost.media}` : null,
@@ -151,8 +127,6 @@ export const updatePost = async (req, res) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
-
-// ✅ DELETE A POST
 export const deletePost = async (req, res) => {
   try {
     const { postId } = req.params;
@@ -161,8 +135,6 @@ export const deletePost = async (req, res) => {
     if (!existingPost) {
       return res.status(404).json({ message: "Post not found" });
     }
-
-    // Delete post
     await prisma.post.delete({ where: { id: parseInt(postId) } });
 
     return res.status(200).json({ message: "Post deleted successfully" });

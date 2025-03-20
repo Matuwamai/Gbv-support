@@ -119,13 +119,9 @@ export const getAllUsers = async (req, res) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
-
-// ✅ GET A SINGLE USER BY ID
 export const getUserById = async (req, res) => {
   try {
     const { userId } = req.params;
-
-    // Validate userId
     const userIdNum = parseInt(userId);
     if (isNaN(userIdNum)) {
       return res.status(400).json({ message: "Invalid user ID" });
@@ -139,8 +135,8 @@ export const getUserById = async (req, res) => {
         email: true, 
         birthday: true, 
         gender: true, 
-        profileImage: true, // Include profile photo
-        contact: true,      // Include contact
+        profileImage: true,
+        contact: true,      
         createdAt: true 
       },
     });
@@ -155,9 +151,6 @@ export const getUserById = async (req, res) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
-
-
-// Multer setup for storing profile images
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "uploads/");
@@ -180,8 +173,6 @@ export const updateUser = async (req, res) => {
 
     const { contact } = req.body;
     const profileImage = req.file ? `/uploads/${req.file.filename}` : null;
-
-    // Prepare update data
     const updateData = { contact };
     if (profileImage) {
       updateData.profileImage = profileImage;

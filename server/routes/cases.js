@@ -9,15 +9,9 @@ import {
 
 const router = express.Router();
 router.post("/", createCase);
-
-
 router.get("/", getAllCases);
-
 router.get("/:caseId", getCaseById);
-
 router.put("/:caseId", updateCase);
-
-
 router.delete("/:caseId", deleteCase);
 
 export default router;

@@ -1,25 +1,17 @@
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
-
-// ✅ CREATE A NEW COMMENT
 export const createComment = async (req, res) => {
   try {
     const { content, userId, postId } = req.body;
-
-    // Check if user exists
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-
-    // Check if post exists
     const post = await prisma.post.findUnique({ where: { id: postId } });
     if (!post) {
       return res.status(404).json({ message: "Post not found" });
     }
-
-    // Create comment
     const comment = await prisma.comment.create({
       data: { content, userId, postId },
     });
@@ -30,8 +22,6 @@ export const createComment = async (req, res) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
-
-// ✅ GET ALL COMMENTS FOR A POST
 export const getCommentsForPost = async (req, res) => {
   try {
     const { postId } = req.params;
@@ -50,8 +40,6 @@ export const getCommentsForPost = async (req, res) => {
       },
       orderBy: { createdAt: "asc" },
     });
-
-    // Ensure full URL for profile images
     const updatedComments = comments.map(comment => ({
       ...comment,
       user: {
@@ -88,21 +76,14 @@ export const getCommentById = async (req, res) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
-
-
-// ✅ UPDATE A COMMENT
 export const updateComment = async (req, res) => {
   try {
     const { commentId } = req.params;
     const { content } = req.body;
-
-    // Check if comment exists
     const existingComment = await prisma.comment.findUnique({ where: { id: parseInt(commentId) } });
     if (!existingComment) {
       return res.status(404).json({ message: "Comment not found" });
     }
-
-    // Update comment
     const updatedComment = await prisma.comment.update({
       where: { id: parseInt(commentId) },
       data: { content },
@@ -114,19 +95,13 @@ export const updateComment = async (req, res) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
-
-// ✅ DELETE A COMMENT
 export const deleteComment = async (req, res) => {
   try {
     const { commentId } = req.params;
-
-    // Check if comment exists
     const existingComment = await prisma.comment.findUnique({ where: { id: parseInt(commentId) } });
     if (!existingComment) {
       return res.status(404).json({ message: "Comment not found" });
     }
-
-    // Delete comment
     await prisma.comment.delete({ where: { id: parseInt(commentId) } });
 
     return res.status(200).json({ message: "Comment deleted successfully" });
