@@ -6,7 +6,7 @@ const EmergencyPage = () => {
   const [issueType, setIssueType] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const API_BASE_URL = `https://gbv-support.onrender.com`;
+  const API_BASE_URL = `https://gbv-support.onrender.com/api`;
 
   const handleCall = async () => {
     if (!phoneNumber || !issueType) {

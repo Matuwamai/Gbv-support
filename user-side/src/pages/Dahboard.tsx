@@ -12,7 +12,7 @@ const Dashboard = () => {
     comments: { id: string; text: string; user: string }[];
   };
 
-  const API_BASE_URL = `https://gbv-support.onrender.com`;
+  const API_BASE_URL = `https://gbv-support.onrender.com/api`;
   const [posts, setPosts] = useState<PostType[]>([]);
   const [loading, setLoading] = useState(true);
 

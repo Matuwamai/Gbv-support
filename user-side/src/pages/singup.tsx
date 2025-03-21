@@ -15,7 +15,7 @@ const SignUp = () => {
     password: "",
   });
 
-  const API_BASE_URL = `https://gbv-support.onrender.com`;
+  const API_BASE_URL = ` https://gbv-support.onrender.com/api`;
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -34,7 +34,7 @@ const SignUp = () => {
     const userData = {
       name: `${formData.firstName} ${formData.lastName}`,
       birthday,
-      gender: formData.gender,
+      Gender: formData.gender,
       email: formData.email,
       password: formData.password,
     };

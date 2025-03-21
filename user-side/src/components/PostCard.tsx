@@ -45,7 +45,7 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
   const [showAllComments, setShowAllComments] = useState<boolean>(false);
   const [reposted, setReposted] = useState<boolean>(false);
 
-  const API_BASE_URL = `https://gbv-support.onrender.com`;
+  const API_BASE_URL = `https://gbv-support.onrender.com/api`;
 
   const handleLike = async () => {
     if (!currentUser) {
