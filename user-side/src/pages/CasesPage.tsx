@@ -25,7 +25,7 @@ const CasePage = () => {
   const [cases, setCases] = useState<CaseItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const API_BASE_URL = `https://gbv-support.onrender.com`;
 
   useEffect(() => {
     const fetchCases = async () => {

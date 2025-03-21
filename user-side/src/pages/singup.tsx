@@ -15,7 +15,7 @@ const SignUp = () => {
     password: "",
   });
 
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const API_BASE_URL = `https://gbv-support.onrender.com`;
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });

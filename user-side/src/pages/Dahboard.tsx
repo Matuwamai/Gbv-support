@@ -12,7 +12,7 @@ const Dashboard = () => {
     comments: { id: string; text: string; user: string }[];
   };
 
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const API_BASE_URL = `https://gbv-support.onrender.com`;
   const [posts, setPosts] = useState<PostType[]>([]);
   const [loading, setLoading] = useState(true);
 

@@ -8,7 +8,7 @@ interface AuthContextType {
   login: (inputs: { email: string; password: string }) => Promise<void>;
   logout: () => void;
 }
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = `https://gbv-support.onrender.com`;
 export const Authcontext = createContext<AuthContextType | null>(null);
 
 export const AuthContextProvider = ({ children }: { children: ReactNode }) => {

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Switch } from "@headlessui/react";
 import axios from "axios";
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = `https://gbv-support.onrender.com`;
 
 
 export default function ProfilePage() {
