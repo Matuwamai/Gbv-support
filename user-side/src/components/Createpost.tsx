@@ -54,7 +54,7 @@ const PostCreation = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center p-4  min-h-screen mt-6">
+    <div className="flex flex-col items-center justify-center p-4  min-h-screen mt-8">
       <div className="w-full max-w-md bg-gray-800 p-4 rounded-2xl shadow-lg">
         <form onSubmit={handlePostSubmit}>
           <div

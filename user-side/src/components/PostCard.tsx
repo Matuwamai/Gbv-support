@@ -6,7 +6,7 @@ import { BiRepost } from "react-icons/bi";
 import { Authcontext } from "../context/authContext";
 
 interface User {
-  id: number;
+  id: string;
   profileImage?: string;
   name?: string;
 }

@@ -4,7 +4,7 @@ import { jwtDecode } from "jwt-decode";
 
 
 interface AuthContextType {
-  currentUser: { id: string; fullName: string; token: string } | null;
+  currentUser: { id: string; name: string; token: string } | null;
   login: (inputs: { email: string; password: string }) => Promise<void>;
   logout: () => void;
 }

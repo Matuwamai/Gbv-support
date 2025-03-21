@@ -31,37 +31,37 @@ const Dashboard = () => {
     }
   };
 
-  const handleLike = async (postId: string) => {
-    try {
-      await axios.post(`${API_BASE_URL}/likes/${postId}`);
-      setPosts((prevPosts) =>
-        prevPosts.map((post) =>
-          post.id === postId ? { ...post, likes: post.likes + 1 } : post
-        )
-      );
-    } catch (error) {
-      console.error("Error liking post:", error);
-    }
-  };
+  // const handleLike = async (postId: string) => {
+  //   try {
+  //     await axios.post(`${API_BASE_URL}/likes/${postId}`);
+  //     setPosts((prevPosts) =>
+  //       prevPosts.map((post) =>
+  //         post.id === postId ? { ...post, likes: post.likes + 1 } : post
+  //       )
+  //     );
+  //   } catch (error) {
+  //     console.error("Error liking post:", error);
+  //   }
+  // };
 
-  const handleComment = async (postId: string, commentText: string) => {
-    try {
-      const response = await axios.post<{ id: string; text: string; user: string }>(
-        `${API_BASE_URL}/comments/${postId}`,
-        { text: commentText }
-      );
+  // const handleComment = async (postId: string, commentText: string) => {
+  //   try {
+  //     const response = await axios.post<{ id: string; text: string; user: string }>(
+  //       `${API_BASE_URL}/comments/${postId}`,
+  //       { text: commentText }
+  //     );
 
-      setPosts((prevPosts) => 
-        prevPosts.map((post) =>
-          post.id === postId
-            ? { ...post, comments: [...post.comments, response.data] }
-            : post
-        )
-      );
-    } catch (error) {
-      console.error("Error posting comment:", error);
-    }
-  };
+  //     setPosts((prevPosts) => 
+  //       prevPosts.map((post) =>
+  //         post.id === postId
+  //           ? { ...post, comments: [...post.comments, response.data] }
+  //           : post
+  //       )
+  //     );
+  //   } catch (error) {
+  //     console.error("Error posting comment:", error);
+  //   }
+  // };
 
   return (
     <div className="max-w-4xl mx-auto p-4 mt-6">
@@ -75,8 +75,8 @@ const Dashboard = () => {
               <PostCard
                 key={post.id}
                 post={post}//
-                onLike={handleLike}
-                onComment={handleComment}
+                // onLike={handleLike}
+                // onComment={handleComment}
               />
             ))
           ) : (
