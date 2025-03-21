@@ -1,24 +1,27 @@
-import { useState } from "react";
+import { useState, ChangeEvent, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 
 const SignUp = () => {
   const navigate = useNavigate();
+  
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     day: "",
     month: "",
     year: "",
-    Gender: "",
+    gender: "",
     email: "",
     password: "",
   });
+
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-  const handleChange = (e) => {
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
     if (!formData.day || !formData.month || !formData.year) {
@@ -31,7 +34,7 @@ const SignUp = () => {
     const userData = {
       name: `${formData.firstName} ${formData.lastName}`,
       birthday,
-      Gender: formData.Gender,
+      gender: formData.gender,
       email: formData.email,
       password: formData.password,
     };
@@ -66,8 +69,22 @@ const SignUp = () => {
         <h2 className="text-2xl font-semibold text-center text-orange-600 mb-4">Create Account</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex flex-col sm:flex-row gap-2">
-            <input type="text" name="firstName" placeholder="First Name" onChange={handleChange} className="w-full sm:w-1/2 p-2 border rounded" required />
-            <input type="text" name="lastName" placeholder="Last Name" onChange={handleChange} className="w-full sm:w-1/2 p-2 border rounded" required />
+            <input
+              type="text"
+              name="firstName"
+              placeholder="First Name"
+              onChange={handleChange}
+              className="w-full sm:w-1/2 p-2 border rounded"
+              required
+            />
+            <input
+              type="text"
+              name="lastName"
+              placeholder="Last Name"
+              onChange={handleChange}
+              className="w-full sm:w-1/2 p-2 border rounded"
+              required
+            />
           </div>
 
           <div>
@@ -97,9 +114,9 @@ const SignUp = () => {
           <div>
             <label className="block text-gray-700">Gender</label>
             <div className="flex gap-4">
-              <label><input type="radio" name="Gender" value="Male" onChange={handleChange} required /> Male</label>
-              <label><input type="radio" name="Gender" value="Female" onChange={handleChange} required /> Female</label>
-              <label><input type="radio" name="Gender" value="Others" onChange={handleChange} required /> Others</label>
+              <label><input type="radio" name="gender" value="Male" onChange={handleChange} required /> Male</label>
+              <label><input type="radio" name="gender" value="Female" onChange={handleChange} required /> Female</label>
+              <label><input type="radio" name="gender" value="Others" onChange={handleChange} required /> Others</label>
             </div>
           </div>
 

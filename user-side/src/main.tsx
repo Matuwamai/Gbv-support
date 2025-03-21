@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthContextProvider } from "./context/authContext";
 import { DarkModeProvider } from "./context/darkModeContext";
-import ProtectedRoute from "./components/protectedRoute"; 
+import ProtectedRoute from "./components/ProtectedRoute"; 
 import SignUp from "./pages/singup";
 import "./index.css";
 import Login from "./pages/login";

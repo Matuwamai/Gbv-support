@@ -32,8 +32,8 @@ const Navbar = () => {
                 <div className="relative">
                     <button onClick={() => setDropdownOpen(!dropdownOpen)} className="flex items-center gap-1 hover:text-gray-200">
                         <User size={20} />
-                        <span className="text-sm hidden md:inline">{currentUser.name}</span>
-                    </button>
+                        <span>{currentUser?.fullName}</span>
+                        </button>
                     {dropdownOpen && (
                         <div className="absolute right-0 mt-2 bg-white text-purple-600 font-bold shadow-lg rounded w-32">
                             <Link to="/profile" className="block px-4 py-2 hover:bg-gray-200">Profile</Link>

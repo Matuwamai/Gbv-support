@@ -4,17 +4,16 @@ import PostCard from "../components/PostCard";
 
 const Dashboard = () => {
   type PostType = {
-    id: string;
-    user: { name: string; profilePhoto?: string };
+    id:  string | number;
+    user: { id: string;  name: string; profilePhoto?: string };
     content?: string;
     mediaUrl?: string;
     likes: number;
     comments: { id: string; text: string; user: string }[];
   };
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-  
-  const [posts, setPosts] = useState<PostType[]>([]);
 
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const [posts, setPosts] = useState<PostType[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -23,7 +22,7 @@ const Dashboard = () => {
 
   const fetchPosts = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/posts/`);
+      const response = await axios.get<PostType[]>(`${API_BASE_URL}/posts/`);
       setPosts(response.data);
     } catch (error) {
       console.error("Error fetching posts:", error);
@@ -32,7 +31,7 @@ const Dashboard = () => {
     }
   };
 
-  const handleLike = async (postId) => {
+  const handleLike = async (postId: string) => {
     try {
       await axios.post(`${API_BASE_URL}/likes/${postId}`);
       setPosts((prevPosts) =>
@@ -45,12 +44,14 @@ const Dashboard = () => {
     }
   };
 
-  const handleComment = async (postId, commentText) => {
+  const handleComment = async (postId: string, commentText: string) => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/comments/${postId}`, {
-        text: commentText,
-      });
-      setPosts((prevPosts) =>
+      const response = await axios.post<{ id: string; text: string; user: string }>(
+        `${API_BASE_URL}/comments/${postId}`,
+        { text: commentText }
+      );
+
+      setPosts((prevPosts) => 
         prevPosts.map((post) =>
           post.id === postId
             ? { ...post, comments: [...post.comments, response.data] }
@@ -73,7 +74,7 @@ const Dashboard = () => {
             posts.map((post) => (
               <PostCard
                 key={post.id}
-                post={post}
+                post={post}//
                 onLike={handleLike}
                 onComment={handleComment}
               />
