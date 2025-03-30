@@ -46,8 +46,6 @@ export const getAllCases = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
-
 export const getCaseById = async (req, res) => {
   try {
     const { caseId } = req.params;

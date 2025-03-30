@@ -63,9 +63,9 @@ model Comment {
 model LikeDislike {
   id        Int          @id @default(autoincrement())
   user      User         @relation(fields: [userId], references: [id])
-  userId    Int
+  userId    Int          @unique
   post      Post?        @relation(fields: [postId], references: [id]) // Nullable
-  postId    Int?         @unique
+  postId    Int?         
   comment   Comment?     @relation(fields: [commentId], references: [id]) // Nullable
   commentId Int?
   reaction  ReactionType // Use the enum

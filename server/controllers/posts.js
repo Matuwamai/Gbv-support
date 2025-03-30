@@ -12,6 +12,7 @@ const storage = multer.diskStorage({
   },
 });
 
+
 const upload = multer({ storage }).single("mediaUrl");
 export const createPost = async (req, res) => {
   try {

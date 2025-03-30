@@ -27,27 +27,60 @@ export const createRepost = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
-export const getRepostsByPost = async (req, res) => {
+export const getAllRepost = async (req, res) => {
   try {
-    const { postId } = req.params;
-    if (!postId || isNaN(postId)) {
-      return res.status(400).json({ error: "Invalid post ID" });
-    }
     const reposts = await prisma.repost.findMany({
-      where: { postId: parseInt(postId) },
-      include: { 
-        user: { select: { id: true, name: true } } 
+      include: {
+        user: { 
+          select: { 
+            id: true, 
+            name: true, 
+            profileImage: true 
+          },
+        }, // User who reposted
+        post: {
+          include: {
+            user: { 
+              select: { 
+                id: true, 
+                name: true, 
+                profileImage: true 
+              },
+            }, // Original post's author
+            mediaUrl: true, // Include mediaUrl of the post
+          },
+        },
       },
       orderBy: { createdAt: "desc" },
     });
 
-    return res.status(200).json(reposts);
+    // Prepend base URL to the image and media paths
+    const baseUrl = process.env.BASE_URL || 'http://localhost:5000'; // Set your base URL here
+
+    const repostsWithImagesAndMedia = reposts.map(repost => ({
+      ...repost,
+      user: {
+        ...repost.user,
+        profileImage: repost.user.profileImage ? `${baseUrl}${repost.user.profileImage}` : null,
+      },
+      post: {
+        ...repost.post,
+        user: {
+          ...repost.post.user,
+          profileImage: repost.post.user.profileImage ? `${baseUrl}${repost.post.user.profileImage}` : null,
+        },
+        mediaUrl: repost.post.mediaUrl ? `${baseUrl}${repost.post.mediaUrl}` : null, // Add base URL for media
+      },
+    }));
+
+    return res.status(200).json(repostsWithImagesAndMedia);
   } catch (error) {
-    console.error("Get Reposts by Post Error:", error);
-    return res.status(500).json({ error: "Internal Server Error" });
+    console.error("Get All Reposts Error:", error);
+    return res.status(500).json({ error: "Error Fetching reposts" });
   }
 };
+
+
 
 export const getRepostsByUser = async (req, res) => {
   try {
