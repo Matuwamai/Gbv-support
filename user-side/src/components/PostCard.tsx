@@ -12,13 +12,14 @@ interface User {
 }
 
 interface Post {
-  id: string |number;
+  id: string | number;
   text?: string;
   user?: User;
   content?: string;
   mediaUrl?: string;
   timestamp?: string;
   likes?: number;
+  originalPost?: Post; // Added for reposts
 }
 
 interface CommentType {
@@ -28,13 +29,12 @@ interface CommentType {
   content?: string;
 }
 
-const PostCard: React.FC<{ post: Post }> = ({ post }) => {
-  
+const PostCard: React.FC<{ post: Post; setPosts?: any }> = ({ post, setPosts }) => {
   if (!post) return <p>Post not found</p>;
+  
   const authContext = useContext(Authcontext);
   const currentUser = authContext?.currentUser;
-
-  console.log("Current User Object:", currentUser);
+  const API_BASE_URL = "http://localhost:5000/api";
 
   const [likes, setLikes] = useState<number>(post.likes || 0);
   const [liked, setLiked] = useState<boolean>(false);
@@ -44,62 +44,6 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
   const [showCommentInput, setShowCommentInput] = useState<boolean>(false);
   const [showAllComments, setShowAllComments] = useState<boolean>(false);
   const [reposted, setReposted] = useState<boolean>(false);
-
-  const API_BASE_URL = `https://gbv-support.onrender.com/api`;
-
-  const handleLike = async () => {
-    if (!currentUser) {
-      console.error("User not logged in");
-      return;
-    }
-
-    try {
-      const response = await axios.post(`${API_BASE_URL}/likes/`, {
-        userId: currentUser.id,
-        postId: post.id,
-        reaction: "LIKE",
-      });
-
-      setLikes(response.data.likes);
-      setLiked(true);
-    } catch (error) {
-      console.error("Error liking post:", error);
-    }
-  };
-
-  const handleRepost = async () => {
-    if (!currentUser) {
-      console.error("User not logged in");
-      return;
-    }
-
-    try {
-      await axios.post(`${API_BASE_URL}/reposts/`, {
-        userId: currentUser.id,
-        postId: post.id,
-      });
-
-      setReposted(true);
-    } catch (error) {
-      console.error("Error reposting post:", error);
-    }
-  };
-
-  const handleComment = async () => {
-    if (!newComment.trim()) return;
-
-    try {
-      const response = await axios.post(`${API_BASE_URL}/comments`, {
-        content: newComment,
-        userId: currentUser?.id,
-        postId: post.id,
-      });
-      setComments([...comments, response.data]);
-      setNewComment("");
-    } catch (error) {
-      console.error("Error posting comment:", error);
-    }
-  };
 
   useEffect(() => {
     fetchLikes();
@@ -137,8 +81,76 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
     }
   };
 
+  const handleLike = async () => {
+    if (!currentUser) {
+      console.error("User not logged in");
+      return;
+    }
+
+    try {
+      const response = await axios.post(`${API_BASE_URL}/likes/`, {
+        userId: currentUser.id,
+        postId: post.id,
+        reaction: "LIKE",
+      });
+
+      setLikes(response.data.likes);
+      setLiked(true);
+    } catch (error) {
+      console.error("Error liking post:", error);
+    }
+  };
+
+  const handleComment = async () => {
+    if (!newComment.trim()) return;
+
+    try {
+      const response = await axios.post(`${API_BASE_URL}/comments`, {
+        content: newComment,
+        userId: currentUser?.id,
+        postId: post.id,
+      });
+
+      setComments([...comments, response.data]);
+      setNewComment("");
+    } catch (error) {
+      console.error("Error posting comment:", error);
+    }
+  };
+
+  const handleRepost = async () => {
+    if (!currentUser) {
+      console.error("User not logged in");
+      return;
+    }
+  
+    try {
+      const response = await axios.post(`${API_BASE_URL}/reposts/`, {
+        userId: currentUser.id,
+        postId: post.id,
+      });
+  
+      setReposted(true);
+      setReposts((prev) => prev + 1);
+  
+      if (setPosts) {
+        setPosts((prevPosts) => [response.data.repost, ...prevPosts]); // Ensure repost appears in UI
+      }
+    } catch (error) {
+      console.error("Error reposting post:", error);
+    }
+  };
+  
   return (
     <div className="bg-white shadow-lg rounded-lg p-4 mb-4 w-full max-w-xl border border-gray-300">
+      {/* Show reposted info if this is a repost */}
+      {post.originalPost && (
+        <p className="text-sm text-gray-500 mb-2">
+          <span className="font-semibold">{post.user?.name}</span> reposted this
+        </p>
+      )}
+
+      {/* User Info */}
       <div className="flex items-center mb-2">
         <img
           src={post.user?.profileImage || "/default-profile.png"}
@@ -150,6 +162,8 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
           <p className="text-sm text-gray-500">{post.timestamp}</p>
         </div>
       </div>
+
+      {/* Post Content */}
       {post.mediaUrl && (
         post.mediaUrl.endsWith(".mp4") ? (
           <video controls className="w-full rounded-lg mb-2">
@@ -160,22 +174,32 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
         )
       )}
       {post.content && <p className="text-gray-700 mb-2">{post.content}</p>}
+
+      {/* If this is a repost, render the original post inside */}
+      {post.originalPost && <PostCard post={post.originalPost} />}
+
+      {/* Post Interactions */}
       <div className="flex justify-between text-sm text-gray-500 border-t pt-2">
         <span>{likes} Likes</span>
         <span>{comments.length} Comments</span>
         <span>{reposts} Reposts</span>
       </div>
+
       <div className="flex justify-around text-purple-600 mt-2 border-t pt-2">
         <button onClick={handleLike} className={liked ? "text-blue-500" : "hover:text-blue-500"}><ThumbUpIcon /></button>
         <button onClick={() => setShowCommentInput(!showCommentInput)} className="hover:text-blue-500"><ModeCommentIcon /></button>
         <button onClick={handleRepost} className={reposted ? "text-blue-500" : "hover:text-blue-500"}><BiRepost /></button>
       </div>
+
+      {/* Comment Input */}
       {showCommentInput && (
         <div className="mt-2 flex">
           <input type="text" className="border p-2 w-full rounded-sm" placeholder="Write a comment..." value={newComment} onChange={(e) => setNewComment(e.target.value)} />
           <button onClick={handleComment} className="ml-2 px-4 py-2 bg-blue-500 text-white">Post</button>
         </div>
       )}
+
+      {/* Comments Section */}
       <div className="mt-4 border-t pt-2 max-h-40 overflow-y-auto">
         <h3 className="text-sm font-semibold text-gray-700">Comments ({comments.length})</h3>
         {(showAllComments ? comments : comments.slice(0, 2)).map((comment, index) => (
@@ -200,7 +224,6 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
         )}
       </div>
     </div>
-    
   );
 };
 

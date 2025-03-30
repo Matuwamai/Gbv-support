@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react";
-import { Switch } from "@headlessui/react";
 import axios from "axios";
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-const API_BASE_URL = `https://gbv-support.onrender.com/api`;
+const API_BASE_URL = "http://localhost:5000/api"
 
 
 export default function ProfilePage() {
-  const [darkMode, setDarkMode] = useState(false);
   const [user, setUser] = useState({
     name: "",
     email: "",
@@ -75,17 +73,10 @@ export default function ProfilePage() {
   
 
   return (
-    <div className={`min-h-screen p-6 ${darkMode ? "bg-gray-900 text-white" : "bg-white text-gray-900"} py-8 mx-0`}>
+    <div className={`min-h-screen p-6 bg-white text-white mt-14 mx-0`}>
       <div className="max-w-2xl mx-auto p-6 rounded-xl shadow-lg bg-gray-100 dark:bg-purple-800">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold">Profile</h2>
-          <Switch
-            checked={darkMode}
-            onChange={setDarkMode}
-            className={`${darkMode ? "bg-blue-600" : "bg-gray-300"} relative inline-flex h-6 w-11 items-center rounded-full`}
-          >
-            <span className={`${darkMode ? "translate-x-6" : "translate-x-1"} inline-block h-4 w-4 transform bg-white rounded-full transition`} />
-          </Switch>
         </div>
 
         <div className="flex flex-col items-center gap-4">

@@ -25,12 +25,12 @@ const CasePage = () => {
   const [cases, setCases] = useState<CaseItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const API_BASE_URL = `https://gbv-support.onrender.com/api`;
+  const API_BASE_URL =  "http://localhost:5000/api"
 
   useEffect(() => {
     const fetchCases = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/cases`);
+        const response = await fetch(`${API_BASE_URL}/cases`);
         if (!response.ok) {
           throw new Error("Failed to fetch cases");
         }
@@ -49,7 +49,7 @@ const CasePage = () => {
   if (error) return <p className="text-center mt-4 text-red-500">{error}</p>;
 
   return (
-    <div className="max-w-4xl mx-auto p-4 mt-16">
+    <div className="max-w-4xl mx-auto p-4 mt-12">
       <h1 className="text-2xl font-bold text-purple-600 text-center mb-4">Reported Cases</h1>
       {cases.length === 0 ? (
         <p className="text-center">No cases reported yet.</p>

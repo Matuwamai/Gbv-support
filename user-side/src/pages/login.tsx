@@ -5,13 +5,15 @@ import { Authcontext } from "../context/authContext";
 const Login = () => {
   const navigate = useNavigate();
   const authContext = useContext(Authcontext);
+  const [loading, setLoading] = useState(true);
+
 
   if (!authContext) {
     console.error("AuthContext is not available! Ensure AuthContextProvider is wrapping the app.");
     return <div>Error: AuthContext is missing</div>;
   }
 
-  const { login } = authContext; 
+  const { login } = authContext;
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -31,6 +33,8 @@ const Login = () => {
     } catch (error) {
       console.error("Login Error:", error);
       alert("An error occurred. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -40,7 +44,7 @@ const Login = () => {
         Gender-Based Violence Support
       </h1>
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md mx-auto">
-        <h2 className="text-xl font-semibold text-center mb-4 text-orange-600">Login</h2>
+        <h2 className="text-xl font-semibold text-center mb-4 text-purple-600">Login</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="email"
@@ -58,16 +62,18 @@ const Login = () => {
             className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
             required
           />
-          <button
+          {loading ? (<button
             type="submit"
             className="w-full bg-purple-500 text-white py-2 rounded hover:bg-purple-600 transition duration-300"
           >
             Login
-          </button>
+          </button>) : (<button
+            className="w-full bg-purple-500 text-white py-2 rounded hover:bg-purple-600 transition duration-300"
+          >Logining ....</button>)}
         </form>
         <p className="text-center mt-4">
           Don't have an account?{" "}
-          <a href="/signup" className="text-orange-600 hover:underline">
+          <a href="/signup" className="text-purple-700 hover:underline">
             Sign Up
           </a>
         </p>

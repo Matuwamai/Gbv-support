@@ -1,18 +1,28 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import PostCard from "../components/PostCard";
+import RepostCard from "../components/rePostCard";
 
 const Dashboard = () => {
+  type UserType = {
+    id: string;
+    name: string;
+    profilePhoto?: string;
+  };
+
   type PostType = {
-    id:  string | number;
-    user: { id: string;  name: string; profilePhoto?: string };
+    id: string | number;
+    user: UserType;
     content?: string;
     mediaUrl?: string;
     likes: number;
     comments: { id: string; text: string; user: string }[];
+    timestamp?: string;
+    repostedBy?: string; // Added to identify reposts
+    isRepost?: boolean;
   };
 
-  const API_BASE_URL = `https://gbv-support.onrender.com/api`;
+  const API_BASE_URL = "http://localhost:5000/api";
   const [posts, setPosts] = useState<PostType[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -22,63 +32,64 @@ const Dashboard = () => {
 
   const fetchPosts = async () => {
     try {
-      const response = await axios.get<PostType[]>(`${API_BASE_URL}/posts/`);
-      setPosts(response.data);
+      const postsResponse = await axios.get<PostType[]>(`${API_BASE_URL}/posts/`);
+      const repostsResponse = await axios.get<{ reposts: { id: string; userId: string; postId: string; createdAt: string }[] }>(
+        `${API_BASE_URL}/reposts/`
+      );
+
+      const posts = postsResponse.data || [];
+      const repostsData = repostsResponse.data.reposts || [];
+
+      // Fetch the original post for each repost
+      const reposts = await Promise.all(
+        repostsData.map(async (repost) => {
+          try {
+            const originalPostResponse = await axios.get<PostType>(`${API_BASE_URL}/posts/${repost.postId}`);
+            return {
+              ...originalPostResponse.data,
+              id: repost.id, // Keep repost ID
+              repostedBy: repost.userId, // Track who reposted it
+              timestamp: repost.createdAt, // Use repost timestamp
+              isRepost: true,
+            };
+          } catch (error) {
+            console.error(`Error fetching original post for repost ID ${repost.id}:`, error);
+            return null;
+          }
+        })
+      );
+
+      // Filter out failed repost fetches
+      const validReposts = reposts.filter((repost) => repost !== null);
+
+      // Combine posts and reposts
+      const combinedPosts = [...posts, ...validReposts].sort(
+        (a, b) => new Date(b.timestamp || "").getTime() - new Date(a.timestamp || "").getTime()
+      );
+
+      setPosts(combinedPosts);
     } catch (error) {
-      console.error("Error fetching posts:", error);
+      console.error("Error fetching posts and reposts:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  // const handleLike = async (postId: string) => {
-  //   try {
-  //     await axios.post(`${API_BASE_URL}/likes/${postId}`);
-  //     setPosts((prevPosts) =>
-  //       prevPosts.map((post) =>
-  //         post.id === postId ? { ...post, likes: post.likes + 1 } : post
-  //       )
-  //     );
-  //   } catch (error) {
-  //     console.error("Error liking post:", error);
-  //   }
-  // };
-
-  // const handleComment = async (postId: string, commentText: string) => {
-  //   try {
-  //     const response = await axios.post<{ id: string; text: string; user: string }>(
-  //       `${API_BASE_URL}/comments/${postId}`,
-  //       { text: commentText }
-  //     );
-
-  //     setPosts((prevPosts) => 
-  //       prevPosts.map((post) =>
-  //         post.id === postId
-  //           ? { ...post, comments: [...post.comments, response.data] }
-  //           : post
-  //       )
-  //     );
-  //   } catch (error) {
-  //     console.error("Error posting comment:", error);
-  //   }
-  // };
-
   return (
-    <div className="max-w-4xl mx-auto p-4 mt-6">
-      <h1 className="text-2xl font-bold text-purple-700 mb-4">Posts</h1>
+    <div className="max-w-4xl mx-auto p-4 mt-12">
+      <h1 className="text-2xl font-bold text-purple-700 mb-4">Posts & Reposts</h1>
       {loading ? (
         <p className="text-gray-600">Loading posts...</p>
       ) : (
         <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
           {posts.length > 0 ? (
-            posts.map((post) => (
-              <PostCard
-                key={post.id}
-                post={post}//
-                // onLike={handleLike}
-                // onComment={handleComment}
-              />
-            ))
+            posts.map((post) =>
+              post.isRepost ? (
+                <RepostCard key={post.id} post={post} />
+              ) : (
+                <PostCard key={post.id} post={post} />
+              )
+            )
           ) : (
             <p className="text-gray-600">No posts available.</p>
           )}
