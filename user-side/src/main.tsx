@@ -2,7 +2,6 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthContextProvider } from "./context/authContext";
-import { DarkModeProvider } from "./context/darkModeContext";
 import ProtectedRoute from "./components/ProtectedRoute"; 
 import SignUp from "./pages/singup";
 import "./index.css";
@@ -16,7 +15,6 @@ import CasePage from "./pages/CasesPage";
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <AuthContextProvider>
-      <DarkModeProvider>
         <Router>
           <Routes>
             <Route path="/signup" element={<SignUp />} />
@@ -30,10 +28,8 @@ createRoot(document.getElementById("root")!).render(
                 <Route path="/cases" element={<CasePage />} />
               </Route>
             </Route>
-
           </Routes>
         </Router>
-      </DarkModeProvider>
     </AuthContextProvider>
   </StrictMode>
 );

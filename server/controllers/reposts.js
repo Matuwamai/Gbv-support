@@ -37,29 +37,27 @@ export const getAllRepost = async (req, res) => {
             name: true, 
             profileImage: true 
           },
-        }, // User who reposted
+        }, 
         post: {
           select: {
             id: true,
             userId: true,
             content: true,
             createdAt: true,
-            mediaUrl: true, // Use select for scalar fields
+            mediaUrl: true, 
             user: { 
               select: { 
                 id: true, 
                 name: true, 
                 profileImage: true 
               },
-            }, // Original post's author
+            }, 
           },
         },
       },
       orderBy: { createdAt: "desc" },
     });
-
-    // Prepend base URL to the image and media paths
-    const baseUrl = process.env.BASE_URL || 'http://localhost:5000'; // Set your base URL here
+    const baseUrl = process.env.BASE_URL || 'http://localhost:5000'; 
 
     const repostsWithImagesAndMedia = reposts.map(repost => ({
       ...repost,
@@ -73,7 +71,7 @@ export const getAllRepost = async (req, res) => {
           ...repost.post.user,
           profileImage: repost.post.user.profileImage ? `${baseUrl}${repost.post.user.profileImage}` : null,
         },
-        mediaUrl: repost.post.mediaUrl ? `${baseUrl}${repost.post.mediaUrl}` : null, // Add base URL for media
+        mediaUrl: repost.post.mediaUrl ? `${baseUrl}${repost.post.mediaUrl}` : null, 
       },
     }));
 
@@ -83,10 +81,6 @@ export const getAllRepost = async (req, res) => {
     return res.status(500).json({ error: "Error Fetching reposts" });
   }
 };
-
-
-
-
 export const getRepostsByUser = async (req, res) => {
   try {
     const { userId } = req.params;

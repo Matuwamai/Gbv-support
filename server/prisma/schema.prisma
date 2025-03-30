@@ -15,13 +15,13 @@ model User {
   role           Role            @default(USER)
   birthday       DateTime
   gender         Gender
-  contact        String? // Optional contact field
-  profileImage   String? // Optional profile image   
+  contact        String? 
+  profileImage   String? 
   posts          Post[]
   comments       Comment[]
   reactions      LikeDislike[]
   reposts        Repost[]
-  cases          Case[] // Cases reported by the user
+  cases          Case[] 
   emergencyCalls EmergencyCall[]
   createdAt      DateTime        @default(now())
 }
@@ -43,7 +43,7 @@ model Post {
   reactions LikeDislike[]
   reposts   Repost[]
   createdAt DateTime      @default(now())
-  cases     Case[]        @relation("PostCases") // Create the reverse relation from Post to Case
+  cases     Case[]        @relation("PostCases") 
 }
 
 model Comment {
@@ -56,7 +56,7 @@ model Comment {
   parent    Comment?      @relation("CommentToComment", fields: [parentId], references: [id])
   parentId  Int?
   children  Comment[]     @relation("CommentToComment")
-  reactions LikeDislike[] // Fix missing relation
+  reactions LikeDislike[] 
   createdAt DateTime      @default(now())
 }
 
@@ -64,14 +64,14 @@ model LikeDislike {
   id        Int          @id @default(autoincrement())
   user      User         @relation(fields: [userId], references: [id])
   userId    Int          @unique
-  post      Post?        @relation(fields: [postId], references: [id]) // Nullable
+  post      Post?        @relation(fields: [postId], references: [id]) 
   postId    Int?         
-  comment   Comment?     @relation(fields: [commentId], references: [id]) // Nullable
+  comment   Comment?     @relation(fields: [commentId], references: [id]) 
   commentId Int?
-  reaction  ReactionType // Use the enum
+  reaction  ReactionType 
   createdAt DateTime     @default(now())
 
-  @@unique([userId, postId, commentId]) // Ensure user reacts only once per post/comment
+  @@unique([userId, postId, commentId]) 
 }
 
 model Repost {
@@ -91,8 +91,8 @@ model Case {
   assignedTo   Authority? @relation(fields: [assignedToId], references: [id])
   assignedToId Int?
   createdAt    DateTime   @default(now())
-   post         Post       @relation(fields: [postId], references: [id], name: "PostCases") // Add the same relation name
-  postId       Int        // Foreign key to Post
+   post         Post       @relation(fields: [postId], references: [id], name: "PostCases") 
+  postId       Int       
 }
 
 model EmergencyCall {

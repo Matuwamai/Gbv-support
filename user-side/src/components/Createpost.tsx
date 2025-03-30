@@ -19,7 +19,6 @@ const PostCreation = () => {
       setMediaPreview(URL.createObjectURL(file));
     }
   };
-
   const handlePostSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -27,10 +26,8 @@ const PostCreation = () => {
       console.error("User not logged in.");
       return;
     }
-    
     console.log("Current User:", currentUser);
     console.log("User ID being sent:", currentUser.id);
-    
     const formData = new FormData();
     formData.append("content", postText);
     formData.append("userId", currentUser.id.toString());
@@ -38,7 +35,6 @@ const PostCreation = () => {
     if (selectedMedia) {
       formData.append("mediaUrl", selectedMedia);
     }
-    
     try {
       const response = await axios.post(`${API_BASE_URL}/posts/`, formData, {
         headers: { "Content-Type": "multipart/form-data" },

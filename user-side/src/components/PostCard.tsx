@@ -20,7 +20,7 @@ interface Post {
   timestamp?: string;
   likes?: number;
   createdAt: string;
-  originalPost?: Post; // Added for reposts
+  originalPost?: Post; 
 }
 
 interface CommentType {
@@ -135,7 +135,7 @@ const PostCard: React.FC<{ post: Post; setPosts?: any }> = ({ post, setPosts }) 
       setReposts((prev) => prev + 1);
   
       if (setPosts) {
-        setPosts((prevPosts) => [response.data.repost, ...prevPosts]); // Ensure repost appears in UI
+        setPosts((prevPosts) => [response.data.repost, ...prevPosts]);
       }
     } catch (error) {
       console.error("Error reposting post:", error);
@@ -159,7 +159,6 @@ const PostCard: React.FC<{ post: Post; setPosts?: any }> = ({ post, setPosts }) 
         </div>
       </div>
 
-      {/* Post Content */}
       {post.mediaUrl && (
         post.mediaUrl.endsWith(".mp4") ? (
           <video controls className="w-full rounded-lg mb-2">
@@ -171,10 +170,7 @@ const PostCard: React.FC<{ post: Post; setPosts?: any }> = ({ post, setPosts }) 
       )}
       {post.content && <p className="text-gray-700 mb-2">{post.content}</p>}
 
-      {/* If this is a repost, render the original post inside */}
       {post.originalPost && <PostCard post={post.originalPost} />}
-
-      {/* Post Interactions */}
       <div className="flex justify-between text-sm text-gray-500 border-t pt-2">
         <span>{likes} Likes</span>
         <span>{comments.length} Comments</span>
@@ -186,16 +182,12 @@ const PostCard: React.FC<{ post: Post; setPosts?: any }> = ({ post, setPosts }) 
         <button onClick={() => setShowCommentInput(!showCommentInput)} className="hover:text-blue-500"><ModeCommentIcon /></button>
         <button onClick={handleRepost} className={reposted ? "text-blue-500" : "hover:text-blue-500"}><BiRepost /></button>
       </div>
-
-      {/* Comment Input */}
       {showCommentInput && (
         <div className="mt-2 flex">
           <input type="text" className="border p-2 w-full rounded-sm" placeholder="Write a comment..." value={newComment} onChange={(e) => setNewComment(e.target.value)} />
           <button onClick={handleComment} className="ml-2 px-4 py-2 bg-blue-500 text-white">Post</button>
         </div>
       )}
-
-      {/* Comments Section */}
       <div className="mt-4 border-t pt-2 max-h-40 overflow-y-auto">
         <h3 className="text-sm font-semibold text-gray-700">Comments ({comments.length})</h3>
         {(showAllComments ? comments : comments.slice(0, 2)).map((comment, index) => (

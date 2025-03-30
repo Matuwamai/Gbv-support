@@ -1,7 +1,6 @@
 import React from "react";
 import { User } from "lucide-react";
 
-// Define the types for the user and post data
 type UserType = {
   id: string;
   name: string;
@@ -10,7 +9,7 @@ type UserType = {
 
 type PostType = {
   id: number;
-  user: UserType; // Original post author
+  user: UserType; 
   content?: string;
   mediaUrl?: string;
   createdAt: string;
@@ -18,8 +17,8 @@ type PostType = {
 
 type RepostType = {
   id: number;
-  user: UserType; // Reposting user
-  post: PostType; // The original post being reposted
+  user: UserType; 
+  post: PostType; 
   createdAt: string;
 };
 
@@ -43,8 +42,6 @@ const RepostCard: React.FC<{ repost: RepostType }> = ({ repost }) => {
           Reposted by <span className="font-semibold">{repost.user.name}</span>
         </p>
       </div>
-
-      {/* Original Post Section */}
       <div className="bg-white p-3 rounded-lg mt-4">
         <div className="flex items-center gap-2 text-gray-700">
           {repost.post.user.profileImage ? (
@@ -71,8 +68,6 @@ const RepostCard: React.FC<{ repost: RepostType }> = ({ repost }) => {
           )}
           <p className="text-gray-800">{repost.post.content}</p>
         </div>
-
-        {/* You can also add timestamp here if needed */}
         <div className="mt-3 text-xs text-gray-500">
           Reposted on: {new Date(repost.createdAt).toLocaleString()}
         </div>
