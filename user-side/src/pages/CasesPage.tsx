@@ -25,7 +25,7 @@ const CasePage = () => {
   const [cases, setCases] = useState<CaseItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const API_BASE_URL =  "http://localhost:5000/api"
+  const API_BASE_URL =  "http://localhost:3000/api"
 
   useEffect(() => {
     const fetchCases = async () => {

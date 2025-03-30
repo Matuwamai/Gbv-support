@@ -19,6 +19,7 @@ interface Post {
   mediaUrl?: string;
   timestamp?: string;
   likes?: number;
+  createdAt: string;
   originalPost?: Post; // Added for reposts
 }
 
@@ -34,7 +35,7 @@ const PostCard: React.FC<{ post: Post; setPosts?: any }> = ({ post, setPosts }) 
   
   const authContext = useContext(Authcontext);
   const currentUser = authContext?.currentUser;
-  const API_BASE_URL = "http://localhost:5000/api";
+  const API_BASE_URL = "http://localhost:3000/api";
 
   const [likes, setLikes] = useState<number>(post.likes || 0);
   const [liked, setLiked] = useState<boolean>(false);
@@ -143,23 +144,18 @@ const PostCard: React.FC<{ post: Post; setPosts?: any }> = ({ post, setPosts }) 
   
   return (
     <div className="bg-white shadow-lg rounded-lg p-4 mb-4 w-full max-w-xl border border-gray-300">
-      {/* Show reposted info if this is a repost */}
-      {post.originalPost && (
-        <p className="text-sm text-gray-500 mb-2">
-          <span className="font-semibold">{post.user?.name}</span> reposted this
-        </p>
-      )}
-
-      {/* User Info */}
+      
       <div className="flex items-center mb-2">
         <img
           src={post.user?.profileImage || "/default-profile.png"}
           alt={post.user?.name || "User"}
           className="w-10 h-10 rounded-full mr-3"
         />
-        <div>
+        <div className="flex flex-col">
           <span className="font-semibold text-gray-800">{post.user?.name}</span>
-          <p className="text-sm text-gray-500">{post.timestamp}</p>
+          <span className="text-gray-900">
+          {new Date(post.createdAt).toLocaleString()}
+          </span>
         </div>
       </div>
 

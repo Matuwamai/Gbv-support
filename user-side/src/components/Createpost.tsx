@@ -7,7 +7,7 @@ const PostCreation = () => {
   const [selectedMedia, setSelectedMedia] = useState<File | null>(null); 
   const [mediaPreview, setMediaPreview] = useState<string | null>(null); 
   const [postText, setPostText] = useState<string>(""); 
-  const API_BASE_URL  = "http://localhost:5000/api"
+  const API_BASE_URL  = "http://localhost:3000/api"
 
   const authContext = useContext(Authcontext);
   const currentUser = authContext?.currentUser;

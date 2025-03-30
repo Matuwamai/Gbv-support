@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-const API_BASE_URL = "http://localhost:5000/api"
+const API_BASE_URL = "http://localhost:3000/api"
 
 
 export default function ProfilePage() {

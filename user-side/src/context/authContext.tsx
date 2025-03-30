@@ -8,7 +8,7 @@ interface AuthContextType {
   login: (inputs: { email: string; password: string }) => Promise<void>;
   logout: () => void;
 }
-const API_BASE_URL = "http://localhost:5000/api"
+const API_BASE_URL = "http://localhost:3000/api"
 export const Authcontext = createContext<AuthContextType | null>(null);
 
 export const AuthContextProvider = ({ children }: { children: ReactNode }) => {

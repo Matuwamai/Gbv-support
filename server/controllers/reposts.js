@@ -39,7 +39,12 @@ export const getAllRepost = async (req, res) => {
           },
         }, // User who reposted
         post: {
-          include: {
+          select: {
+            id: true,
+            userId: true,
+            content: true,
+            createdAt: true,
+            mediaUrl: true, // Use select for scalar fields
             user: { 
               select: { 
                 id: true, 
@@ -47,7 +52,6 @@ export const getAllRepost = async (req, res) => {
                 profileImage: true 
               },
             }, // Original post's author
-            mediaUrl: true, // Include mediaUrl of the post
           },
         },
       },
@@ -79,6 +83,7 @@ export const getAllRepost = async (req, res) => {
     return res.status(500).json({ error: "Error Fetching reposts" });
   }
 };
+
 
 
 

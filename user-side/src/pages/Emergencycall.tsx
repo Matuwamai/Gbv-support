@@ -6,7 +6,7 @@ const EmergencyPage = () => {
   const [issueType, setIssueType] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const API_BASE_URL ="http://localhost:5000/api"
+  const API_BASE_URL ="http://localhost:3000/api"
 
   const handleCall = async () => {
     if (!phoneNumber || !issueType) {

@@ -11,7 +11,7 @@ import callRoutes from "./routes/emergency_call.js"
 import authorityRoutes from "./routes/Authorities.js";
 
 const app = express();
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 dotenv.config();
