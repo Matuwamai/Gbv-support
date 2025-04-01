@@ -12,6 +12,7 @@ import ProfilePage from "./pages/ProfilePage";
 import Dashboard from "./pages/Dahboard";
 import EmergencyPage from "./pages/Emergencycall";
 import CasePage from "./pages/CasesPage";
+import LandingPage from "./pages/LandingPage";
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <AuthContextProvider>
@@ -19,9 +20,10 @@ createRoot(document.getElementById("root")!).render(
           <Routes>
             <Route path="/signup" element={<SignUp />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/" element={<LandingPage />} />
             <Route element={<ProtectedRoute />}>
               <Route element={<Layout />}>
-                <Route path="/" element={<Dashboard />} />
+                <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/newpost" element={<NewPost />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/emergency" element={<EmergencyPage />} />
