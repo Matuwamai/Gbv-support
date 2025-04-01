@@ -59,7 +59,7 @@ const Dashboard = () => {
       {loading ? (
         <p className="text-gray-600">Loading posts...</p>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-1 flex items-center justify-center">
           {posts.length > 0 ? (
             posts.map((post) => (
               <PostCard key={post.id} post={post} />
@@ -74,7 +74,7 @@ const Dashboard = () => {
       {loading ? (
         <p className="text-gray-600">Loading reposts...</p>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-1">
           {reposts.length > 0 ? (
             reposts.map((repost) => (
               <RepostCard key={repost.id} repost={repost} />

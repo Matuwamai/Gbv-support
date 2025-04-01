@@ -81,44 +81,58 @@ const PostCard: React.FC<{ post: Post; setPosts?: any }> = ({ post, setPosts }) 
       console.error("Error fetching reposts:", error);
     }
   };
-
   const handleLike = async () => {
     if (!currentUser) {
       console.error("User not logged in");
       return;
     }
-
+  
     try {
+      // Optimistic UI update
+      setLikes((prev) => prev + 1);
+      setLiked(true);
+  
       const response = await axios.post(`${API_BASE_URL}/likes/`, {
         userId: currentUser.id,
         postId: post.id,
         reaction: "LIKE",
       });
-
-      setLikes(response.data.likes);
-      setLiked(true);
+  
+      setLikes(response.data.likes); // Ensure sync with backend
     } catch (error) {
       console.error("Error liking post:", error);
+      setLikes((prev) => prev - 1); // Revert UI on error
     }
   };
-
+  
   const handleComment = async () => {
     if (!newComment.trim()) return;
-
+  
     try {
+      // Optimistic UI update
+      const tempComment = {
+        id: Math.random().toString(), // Temporary ID
+        content: newComment,
+        userId: currentUser?.id,
+        createdAt: new Date().toISOString(),
+      };
+  
+      setComments((prev) => [...prev, tempComment]);
+      setNewComment("");
+  
       const response = await axios.post(`${API_BASE_URL}/comments`, {
         content: newComment,
         userId: currentUser?.id,
         postId: post.id,
       });
-
-      setComments([...comments, response.data]);
-      setNewComment("");
+  
+      setComments((prev) => prev.map((c) => (c.id === tempComment.id ? response.data : c)));
     } catch (error) {
       console.error("Error posting comment:", error);
+      setComments((prev) => prev.filter((c) => c.id !== tempComment.id)); // Revert UI on error
     }
   };
-
+  
   const handleRepost = async () => {
     if (!currentUser) {
       console.error("User not logged in");
@@ -126,24 +140,29 @@ const PostCard: React.FC<{ post: Post; setPosts?: any }> = ({ post, setPosts }) 
     }
   
     try {
+      // Optimistic UI update
+      setReposted(true);
+      setReposts((prev) => prev + 1);
+  
       const response = await axios.post(`${API_BASE_URL}/reposts/`, {
         userId: currentUser.id,
         postId: post.id,
       });
   
-      setReposted(true);
-      setReposts((prev) => prev + 1);
+      setReposts(response.data.reposts); // Sync with backend
   
       if (setPosts) {
         setPosts((prevPosts) => [response.data.repost, ...prevPosts]);
       }
     } catch (error) {
       console.error("Error reposting post:", error);
+      setReposts((prev) => prev - 1); // Revert UI on error
     }
   };
   
+  
   return (
-    <div className="bg-white shadow-lg rounded-lg p-4 mb-4 w-full max-w-xl border border-gray-300">
+    <div className="bg-white shadow-lg rounded-lg p-4 mb-4 w-full  border border-gray-300">
       
       <div className="flex items-center mb-2">
         <img

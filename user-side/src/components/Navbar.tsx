@@ -18,7 +18,7 @@ const Navbar = () => {
     return (
         <nav className="bg-purple-600 text-white p-5 shadow-md fixed top-0 w-full z-50">
             <div className="container mx-auto flex justify-between items-center">
-                <a href="/" className="text-lg font-bold md:text-xl mx-1">
+                <a href="/dashboard" className="text-lg font-bold md:text-xl mx-1">
                     GBV<span className="hidden md:inline"> Support</span>
                 </a>
                 <ul className="flex items-center gap-4 text-sm md:text-sm">

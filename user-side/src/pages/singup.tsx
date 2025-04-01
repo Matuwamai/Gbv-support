@@ -65,7 +65,7 @@ const [loading, setLoading] = useState(true);
   return (
     <div className="flex flex-col justify-center items-center min-h-screen bg-gray-100 px-4">
       <h1 className="mb-4 text-2xl text-purple-600 font-bold text-center">
-        Gender-Based Violence Support
+        Gender-Based Violence 
       </h1>
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md mx-auto">
         <h2 className="text-2xl font-semibold text-center text-purple-600 mb-4">Create Account</h2>
