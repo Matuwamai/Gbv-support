@@ -2,21 +2,25 @@ import { createContext, useEffect, useState, ReactNode } from "react";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 
-
 interface AuthContextType {
   currentUser: { id: string; name: string; token: string } | null;
-  login: (inputs: { email: string; password: string }) => Promise<void>;
+  login: (inputs: { email: string; password: string }) => Promise<string | null>; // Return success or error message
   logout: () => void;
 }
-const API_BASE_URL = "http://localhost:3000/api"
+
+const API_BASE_URL = "http://localhost:3000/api";
 export const Authcontext = createContext<AuthContextType | null>(null);
 
 export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
   const [currentUser, setCurrentUser] = useState(
     localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")!) : null
   );
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const login = async (inputs: { email: string; password: string }) => {
+    setError(null);
+    setSuccess(null);
     try {
       const res = await axios.post(`${API_BASE_URL}/users/login`, inputs);
 
@@ -34,8 +38,13 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
 
       setCurrentUser(userData);
       localStorage.setItem("user", JSON.stringify(userData));
-    } catch (error) {
+      setSuccess("Login successful! Redirecting...");
+
+      return null; // No error, so return null
+    } catch (error: any) {
       console.error("Login Error:", error);
+      setError(error.response?.data?.message || "An error occurred. Please try again.");
+      return error.response?.data?.message || "An error occurred. Please try again."; // Return error message
     }
   };
 
@@ -44,6 +53,7 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
     setCurrentUser(null);
     localStorage.removeItem("user");
   };
+
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {

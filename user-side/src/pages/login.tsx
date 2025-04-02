@@ -1,81 +1,100 @@
-import { useState, useContext } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useContext } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { Authcontext } from "../context/authContext";
 
-const Login = () => {
-  const navigate = useNavigate();
+const Login: React.FC = () => {
   const authContext = useContext(Authcontext);
-  const [loading, setLoading] = useState(true);
-
-
   if (!authContext) {
-    console.error("AuthContext is not available! Ensure AuthContextProvider is wrapping the app.");
-    return <div>Error: AuthContext is missing</div>;
+    throw new Error("AuthContext must be used within an AuthProvider");
   }
-
   const { login } = authContext;
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+    setSuccess(null);
 
-    try {
-      await login(formData);
-      console.log("Login successful! Redirecting...");
-      navigate("/dashboard");
-    } catch (error) {
-      console.error("Login Error:", error);
-      alert("An error occurred. Please try again.");
-    } finally {
-      setLoading(false);
+    // Input validation
+    if (!email || !password) {
+      setError("Email and password are required.");
+      return;
     }
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      setError("Please enter a valid email.");
+      return;
+    }
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+
+    setLoading(true);
+
+    // Call the login function from context and handle the response
+    const response = await login({ email, password });
+    if (response) {
+      setError(response);  // If there's an error, show it
+    } else {
+      setSuccess("Login successful! Redirecting...");
+      setTimeout(() => navigate("/dashboard"), 1500);
+    }
+
+    setLoading(false);
   };
 
   return (
-    <div className="flex flex-col justify-center items-center min-h-screen bg-gray-100 px-4">
+    <div className="flex justify-center flex-col items-center h-screen bg-gray-100 px-4">
       <h1 className="text-3xl font-semibold mb-4 text-purple-600 font-bold text-center">
-        Gender-Based Violence 
+        Gender-Based Violence
       </h1>
-      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md mx-auto">
-        <h2 className="text-xl font-semibold text-center mb-4 text-purple-600">Login</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+        
+        <h2 className="text-2xl font-bold text-center text-purple-600 mb-4">Login</h2>
+
+        {error && <p className="text-red-500 font-bold text-sm text-center mb-2">{error}</p>}
+        {success && <p className="text-green-500 font-bold text-sm text-center mb-2">{success}</p>}
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <input
             type="email"
-            name="email"
             placeholder="Email"
-            onChange={handleChange}
-            className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
+            className="border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             required
           />
           <input
             type="password"
-            name="password"
             placeholder="Password"
-            onChange={handleChange}
-            className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
+            className="border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             required
           />
-          {loading ? (<button
+          <button
             type="submit"
-            className="w-full bg-purple-500 text-white py-2 rounded hover:bg-purple-600 transition duration-300"
+            disabled={loading}
+            className={`p-2 rounded-lg text-white ${
+              loading ? "bg-gray-500 cursor-not-allowed" : "bg-purple-600 hover:bg-purple-700"
+            }`}
           >
-            Login
-          </button>) : (<button
-            className="w-full bg-purple-500 text-white py-2 rounded hover:bg-purple-600 transition duration-300"
-          >Logining ....</button>)}
+            {loading ? "Logging in..." : "Login"}
+          </button>
         </form>
-        <p className="text-center mt-4">
+
+        <p className="text-sm text-center mt-4">
           Don't have an account?{" "}
-          <a href="/signup" className="text-purple-700 hover:underline">
-            Sign Up
-          </a>
+          <Link to="/signup" className="text-purple-600 hover:underline">
+            Sign up
+          </Link>
         </p>
       </div>
     </div>
