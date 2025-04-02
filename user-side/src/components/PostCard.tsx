@@ -45,11 +45,13 @@ const PostCard: React.FC<{ post: Post; setPosts?: any }> = ({ post, setPosts }) 
   const [showCommentInput, setShowCommentInput] = useState<boolean>(false);
   const [showAllComments, setShowAllComments] = useState<boolean>(false);
   const [reposted, setReposted] = useState<boolean>(false);
+  const [refresh, setRefresh] = useState(false);
 
+  const triggerRefresh = () => setRefresh((prev) => !prev);
   useEffect(() => {
     fetchLikes();
     fetchReposts();
-  }, []);
+  }, [refresh]);
 
   const fetchLikes = async () => {
     try {
@@ -65,6 +67,7 @@ const PostCard: React.FC<{ post: Post; setPosts?: any }> = ({ post, setPosts }) 
       try {
         const response = await axios.get(`${API_BASE_URL}/comments/${post.id}`);
         setComments(response.data || []);
+        triggerRefresh()
       } catch (error) {
         console.error("Error fetching comments:", error);
         setComments([]);
@@ -99,6 +102,7 @@ const PostCard: React.FC<{ post: Post; setPosts?: any }> = ({ post, setPosts }) 
       });
   
       setLikes(response.data.likes); // Ensure sync with backend
+      triggerRefresh()
     } catch (error) {
       console.error("Error liking post:", error);
       setLikes((prev) => prev - 1); // Revert UI on error
@@ -127,6 +131,7 @@ const PostCard: React.FC<{ post: Post; setPosts?: any }> = ({ post, setPosts }) 
       });
   
       setComments((prev) => prev.map((c) => (c.id === tempComment.id ? response.data : c)));
+      triggerRefresh()
     } catch (error) {
       console.error("Error posting comment:", error);
       setComments((prev) => prev.filter((c) => c.id !== tempComment.id)); // Revert UI on error

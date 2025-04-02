@@ -8,6 +8,7 @@ const PostCreation = () => {
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
   const [postText, setPostText] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const [successMessage, setSucceMessage] = useState<string>("");
   const API_BASE_URL = "http://localhost:3000/api";
   const authContext = useContext(Authcontext);
   const currentUser = authContext?.currentUser;
@@ -20,13 +21,14 @@ const PostCreation = () => {
         return;
       }
       setErrorMessage("");
+      setSucceMessage("");
       setSelectedMedia(file);
       setMediaPreview(URL.createObjectURL(file));
     }
   };
 
   const handlePostSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+    // e.preventDefault();
     
     if (!currentUser?.id) {
       setErrorMessage("You must be logged in to post.");
@@ -53,6 +55,7 @@ const PostCreation = () => {
       setSelectedMedia(null);
       setMediaPreview(null);
       setErrorMessage("");
+      setSucceMessage("Post created Succefully");
     } catch (error) {
       setErrorMessage("Error creating post. Please try again.");
     }
@@ -62,7 +65,7 @@ const PostCreation = () => {
     <div className="flex flex-col items-center justify-center p-6 w-full max-w-2xl mx-auto mb-6 bg-purple-900 rounded-2xl shadow-xl">
       <form onSubmit={handlePostSubmit} className="w-full">
         <div
-          className="w-full h-52 bg-gray-200 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-600 transition"
+          className="w-full h-52 bg-gray-200 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-300 transition"
           onClick={() => document.getElementById("mediaInput")?.click()}
         >
           {mediaPreview ? (
@@ -89,7 +92,8 @@ const PostCreation = () => {
           value={postText}
           onChange={(e) => setPostText(e.target.value)}
         ></textarea>
-        {errorMessage && <p className="text-red-500 text-sm mt-2">{errorMessage}</p>}
+        {errorMessage && <p className="text-red-500 text-sm mt-2 font-semibold">{errorMessage}</p>}
+        {successMessage && <p className="text-green-400 text-md mt-2 font-semibold">{successMessage}</p>}
         <button
           type="submit"
           className="w-full mt-4 bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 transition text-lg font-semibold"
