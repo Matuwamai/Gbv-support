@@ -25,7 +25,7 @@ createRoot(document.getElementById("root")!).render(
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/emergency" element={<EmergencyPage />} />
-                <Route path="/update-post/:id" element={<UpdatePostPage />} />
+              <Route path="/update-post/:postId" element={<UpdatePostPage />} /> 
               </Route>
             </Route>
           </Routes>

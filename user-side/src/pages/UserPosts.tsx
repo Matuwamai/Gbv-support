@@ -12,7 +12,7 @@ export default function UserPostsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-  const navigate = useNavigate(); // Initialize useNavigate for redirection
+  const navigate = useNavigate(); 
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -25,10 +25,10 @@ export default function UserPostsPage() {
   const fetchPostsAndReposts = async (userId: number) => {
     try {
       const postsResponse = await axios.get(`${API_BASE_URL}/posts/user/${userId}`);
-      // const repostsResponse = await axios.get(`${API_BASE_URL}/posts/reposts/${userId}`);
+      const repostsResponse = await axios.get(`${API_BASE_URL}/reposts/user/${userId}`);
       
       setPosts(postsResponse.data);
-      // setReposts(repostsResponse.data);
+      setReposts(repostsResponse.data);
     } catch (error) {
       setError("Error fetching posts and reposts.");
     } finally {
@@ -67,16 +67,16 @@ export default function UserPostsPage() {
           {posts.map(post => (
             <div key={post.id} className="mb-6">
               <PostCard post={post} />
-              <div className="flex space-x-4 mt-2">
+              <div className="flex space-x-4 mt-2 items-center justify-center ">
                 <button
                   onClick={() => handleUpdate(post.id)}
-                  className="text-blue-600 hover:underline"
+                  className="text-blue-600 hover:green-500 bg-green-400 px-4 py-2 rounded-sm"
                 >
                   Edit
                 </button>
                 <button
                   onClick={() => handleDelete(post.id)}
-                  className="text-red-600 hover:underline"
+                  className="text-white rounded-sm hover:red-600 bg-red-500 px-4 py-2"
                 >
                   Delete
                 </button>
@@ -94,13 +94,13 @@ export default function UserPostsPage() {
               <div className="flex space-x-4 mt-2">
                 <button
                   onClick={() => handleUpdate(repost.id)}
-                  className="text-blue-600 hover:underline"
+                  className="text-blue-600 hover:green-500 bg-green-400 px-4 py-2 rounded-sm"
                 >
                   Edit
                 </button>
                 <button
                   onClick={() => handleDelete(repost.id)}
-                  className="text-red-600 hover:underline"
+                  className="text-red-600 rounded-sm hover:red-600 bg-red-500 px-4 py-2"
                 >
                   Delete
                 </button>
