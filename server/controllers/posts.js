@@ -5,10 +5,10 @@ import path from "path";
 const prisma = new PrismaClient();
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/"); 
+    cb(null, "uploads/");
   },
   filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname)); 
+    cb(null, Date.now() + path.extname(file.originalname));
   },
 });
 
@@ -45,17 +45,19 @@ export const getAllPosts = async (req, res) => {
   try {
     const posts = await prisma.post.findMany({
       include: {
-        user: { select: { id: true, name: true, profileImage: true } }, 
+        user: { select: { id: true, name: true, profileImage: true } },
       },
       orderBy: { createdAt: "desc" },
     });
+const BASE_URL =`http://localhost:3000`
+
     const updatedPosts = posts.map(post => ({
       ...post,
-      mediaUrl: post.mediaUrl ? `${process.env.BASE_URL}${post.mediaUrl}` : null,
+      mediaUrl: post.mediaUrl ? `${BASE_URL}${post.mediaUrl}` : null,
       user: {
         ...post.user,
-        profileImage: post.user.profileImage 
-          ? `${process.env.BASE_URL}${post.user.profileImage}` 
+        profileImage: post.user.profileImage
+          ? `${BASE_URL}${post.user.profileImage}`
           : null,
       },
     }));
@@ -86,14 +88,14 @@ export const getPostsByUser = async (req, res) => {
     if (!posts.length) {
       return res.status(404).json({ message: "No posts found for this user" });
     }
-
+    const BASE_URL = `http://localhost:3000`
     const updatedPosts = posts.map(post => ({
       ...post,
-      media: post.media ? `${process.env.BASE_URL}${post.media}` : null,
+      media: post.media ? `${BASE_URL}${post.media}` : null,
       user: {
         ...post.user,
         profileImage: post.user.profileImage
-          ? `${process.env.BASE_URL}${post.user.profileImage}`
+          ? `${BASE_URL}${post.user.profileImage}`
           : null,
       },
     }));
@@ -115,23 +117,25 @@ export const getPostById = async (req, res) => {
 
     const post = await prisma.post.findUnique({
       where: { id },
-      include: { 
-        user: { 
-          select: { id: true, name: true, profileImage: true } 
-        } 
+      include: {
+        user: {
+          select: { id: true, name: true, profileImage: true }
+        }
       },
     });
 
     if (!post) {
       return res.status(404).json({ message: "Post not found" });
     }
+    const BASE_URL = `http://localhost:3000`
+
     const updatedPost = {
       ...post,
-      media: post.media ? `${process.env.BASE_URL}${post.media}` : null,
+      media: post.media ? `${BASE_URL}${post.media}` : null,
       user: {
         ...post.user,
-        profileImage: post.user.profileImage 
-          ? `${process.env.BASE_URL}${post.user.profileImage}` 
+        profileImage: post.user.profileImage
+          ? `${BASE_URL}${post.user.profileImage}`
           : null,
       },
     };
@@ -144,29 +148,37 @@ export const getPostById = async (req, res) => {
 };
 export const updatePost = async (req, res) => {
   try {
-    const { postId } = req.params;
     const { content } = req.body;
+    const { postId } = req.params;
+
+    console.log("Received content:", content);
+    console.log("Received file:", req.file);
+
+    if (!postId) {
+      return res.status(400).json({ message: "Invalid post ID" });
+    }
 
     const existingPost = await prisma.post.findUnique({ where: { id: parseInt(postId, 10) } });
+
     if (!existingPost) {
       return res.status(404).json({ message: "Post not found" });
     }
 
+    const mediaUrl = req.file ? `/uploads/${req.file.filename}` : existingPost.mediaUrl;
+
     const updatedPost = await prisma.post.update({
       where: { id: parseInt(postId, 10) },
-      data: { content },
+      data: { content, mediaUrl },
     });
-    const formattedPost = {
-      ...updatedPost,
-      media: updatedPost.media ? `${process.env.BASE_URL}${updatedPost.media}` : null,
-    };
 
-    return res.status(200).json({ message: "Post updated successfully", post: formattedPost });
+    return res.status(200).json({ message: "Post updated successfully", post: updatedPost });
   } catch (error) {
     console.error("Update Post Error:", error);
     return res.status(500).json({ message: "Server error" });
   }
 };
+
+
 export const deletePost = async (req, res) => {
   try {
     const { postId } = req.params;

@@ -3,30 +3,43 @@ const prisma = new PrismaClient();
 
 export const createRepost = async (req, res) => {
   try {
-    const { userId, postId } = req.body;
-    
-    if (!userId || !postId) {
-      return res.status(400).json({ error: "Missing required fields: userId and postId" });
+    const { postId, userId } = req.body;
+
+    console.log("Reposting User ID:", userId);
+    console.log("Original Post ID:", postId);
+
+    if (!postId || isNaN(parseInt(postId, 10))) {
+      return res.status(400).json({ message: "Invalid or missing postId" });
     }
 
-    const userExists = await prisma.user.findUnique({ where: { id: userId } });
-    if (!userExists) {
-      return res.status(404).json({ error: "User not found" });
+    if (!userId || isNaN(parseInt(userId, 10))) {
+      return res.status(400).json({ message: "Invalid or missing userId" });
     }
-    const postExists = await prisma.post.findUnique({ where: { id: postId } });
-    if (!postExists) {
-      return res.status(404).json({ error: "Post not found" });
-    }
-    const newRepost = await prisma.repost.create({
-      data: { userId, postId },
+
+    const numericPostId = parseInt(postId, 10);
+    const numericUserId = parseInt(userId, 10);
+    const post = await prisma.post.findUnique({
+      where: { id: numericPostId },
     });
 
-    return res.status(201).json({ message: "Repost created successfully", repost: newRepost });
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    if (post.userId === numericUserId) {
+      return res.status(403).json({ message: "You cannot repost your own post" });
+    }
+    const repost = await prisma.repost.create({
+      data: { postId: numericPostId, userId: numericUserId },
+    });
+
+    return res.status(201).json({ message: "Repost created successfully", repost });
   } catch (error) {
     console.error("Create Repost Error:", error);
-    return res.status(500).json({ error: "Internal Server Error" });
+    return res.status(500).json({ message: "Server error" });
   }
 };
+
 export const getAllRepost = async (req, res) => {
   try {
     const reposts = await prisma.repost.findMany({

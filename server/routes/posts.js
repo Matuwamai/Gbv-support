@@ -34,7 +34,7 @@ const upload = multer({
 router.post("/", createPost);
 router.get("/", getAllPosts);
 router.get("/:postId", getPostById);
-router.put("/:postId", updatePost);
+router.put("/:postId", upload.single("mediaUrl"), updatePost);
 router.delete("/:postId", deletePost); 
 router.get("/user/:userId",getPostsByUser )
 
