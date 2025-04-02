@@ -1,5 +1,5 @@
 import express from "express";
-import { createPost, getAllPosts, getPostById, updatePost, deletePost } from "../controllers/posts.js";
+import { createPost, getAllPosts, getPostById, updatePost,getPostsByUser, deletePost } from "../controllers/posts.js";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -36,5 +36,6 @@ router.get("/", getAllPosts);
 router.get("/:postId", getPostById);
 router.put("/:postId", updatePost);
 router.delete("/:postId", deletePost); 
+router.get("/user/:userId",getPostsByUser )
 
 export default router;

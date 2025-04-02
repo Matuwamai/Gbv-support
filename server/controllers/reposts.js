@@ -89,21 +89,57 @@ export const getRepostsByUser = async (req, res) => {
     }
     const reposts = await prisma.repost.findMany({
       where: { userId: parseInt(userId) },
-      include: { 
-        post: { 
-          include: { 
-            user: { select: { id: true, name: true } } 
-          } 
-        } 
+      include: {
+        user: { 
+          select: { 
+            id: true, 
+            name: true, 
+            profileImage: true 
+          },
+        }, 
+        post: {
+          select: {
+            id: true,
+            userId: true,
+            content: true,
+            createdAt: true,
+            mediaUrl: true, 
+            user: { 
+              select: { 
+                id: true, 
+                name: true, 
+                profileImage: true 
+              },
+            }, 
+          },
+        },
       },
       orderBy: { createdAt: "desc" },
     });
-    return res.status(200).json(reposts);
+    const baseUrl = process.env.BASE_URL || 'http://localhost:5000'; 
+
+    const repostsWithImagesAndMedia = reposts.map(repost => ({
+      ...repost,
+      user: {
+        ...repost.user,
+        profileImage: repost.user.profileImage ? `${baseUrl}${repost.user.profileImage}` : null,
+      },
+      post: {
+        ...repost.post,
+        user: {
+          ...repost.post.user,
+          profileImage: repost.post.user.profileImage ? `${baseUrl}${repost.post.user.profileImage}` : null,
+        },
+        mediaUrl: repost.post.mediaUrl ? `${baseUrl}${repost.post.mediaUrl}` : null, 
+      },
+    }));
+
+    return res.status(200).json(repostsWithImagesAndMedia);
   } catch (error) {
-    console.error("Get Reposts by User Error:", error);
-    return res.status(500).json({ error: "Internal Server Error" });
-  }
-};
+    console.error("Get All Reposts Error:", error);
+    return res.status(500).json({ error: "Error Fetching reposts" });
+  }}
+      
 export const deleteRepost = async (req, res) => {
   try {
     const { repostId } = req.params;

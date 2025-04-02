@@ -130,7 +130,6 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage });
-
 export const updateUser = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -140,12 +139,16 @@ export const updateUser = async (req, res) => {
       return res.status(400).json({ message: "Invalid user ID" });
     }
 
-    const { contact } = req.body;
+    const { name, email, birthday, gender, contact } = req.body;
     const profileImage = req.file ? `/uploads/${req.file.filename}` : null;
-    const updateData = { contact };
-    if (profileImage) {
-      updateData.profileImage = profileImage;
-    }
+
+    const updateData = {};
+    if (name) updateData.name = name;
+    if (email) updateData.email = email;
+    if (birthday) updateData.birthday = birthday;
+    if (gender) updateData.gender = gender;
+    if (contact) updateData.contact = contact;
+    if (profileImage) updateData.profileImage = profileImage;
 
     const updatedUser = await prisma.user.update({
       where: { id: userIdNum },

@@ -66,6 +66,45 @@ export const getAllPosts = async (req, res) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
+export const getPostsByUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const id = parseInt(userId, 10);
+    if (isNaN(id)) {
+      return res.status(400).json({ message: "Invalid user ID" });
+    }
+
+    const posts = await prisma.post.findMany({
+      where: { userId: id },
+      include: {
+        user: {
+          select: { id: true, name: true, profileImage: true },
+        },
+      },
+    });
+
+    if (!posts.length) {
+      return res.status(404).json({ message: "No posts found for this user" });
+    }
+
+    const updatedPosts = posts.map(post => ({
+      ...post,
+      media: post.media ? `${process.env.BASE_URL}${post.media}` : null,
+      user: {
+        ...post.user,
+        profileImage: post.user.profileImage
+          ? `${process.env.BASE_URL}${post.user.profileImage}`
+          : null,
+      },
+    }));
+
+    return res.status(200).json(updatedPosts);
+  } catch (error) {
+    console.error("Get User Posts Error:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
 export const getPostById = async (req, res) => {
   try {
     const { postId } = req.params;
@@ -131,12 +170,29 @@ export const updatePost = async (req, res) => {
 export const deletePost = async (req, res) => {
   try {
     const { postId } = req.params;
+    const parsedPostId = parseInt(postId);
 
-    const existingPost = await prisma.post.findUnique({ where: { id: parseInt(postId) } });
+    if (isNaN(parsedPostId)) {
+      return res.status(400).json({ message: "Invalid post ID" });
+    }
+
+    // Check if post exists
+    const existingPost = await prisma.post.findUnique({
+      where: { id: parsedPostId },
+    });
+
     if (!existingPost) {
       return res.status(404).json({ message: "Post not found" });
     }
-    await prisma.post.delete({ where: { id: parseInt(postId) } });
+
+    // Delete related records first
+    await prisma.comment.deleteMany({ where: { postId: parsedPostId } });
+    await prisma.likeDislike.deleteMany({ where: { postId: parsedPostId } });
+    await prisma.repost.deleteMany({ where: { postId: parsedPostId } });
+    await prisma.case.deleteMany({ where: { postId: parsedPostId } });
+
+    // Now delete the post
+    await prisma.post.delete({ where: { id: parsedPostId } });
 
     return res.status(200).json({ message: "Post deleted successfully" });
   } catch (error) {
@@ -144,3 +200,5 @@ export const deletePost = async (req, res) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
+
+
