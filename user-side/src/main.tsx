@@ -7,7 +7,6 @@ import SignUp from "./pages/singup";
 import "./index.css";
 import Login from "./pages/login";
 import Layout from "./components/Layout";
-import NewPost from "./components/Createpost";
 import ProfilePage from "./pages/ProfilePage";
 import Dashboard from "./pages/Dahboard";
 import EmergencyPage from "./pages/Emergencycall";
@@ -23,7 +22,6 @@ createRoot(document.getElementById("root")!).render(
             <Route element={<ProtectedRoute />}>
               <Route element={<Layout />}>
                 <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/newpost" element={<NewPost />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/emergency" element={<EmergencyPage />} />
               </Route>

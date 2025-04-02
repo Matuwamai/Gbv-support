@@ -59,10 +59,10 @@ const PostCreation = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center p-6 w-full max-w-2xl mx-auto mb-6 bg-gray-900 rounded-2xl shadow-xl">
+    <div className="flex flex-col items-center justify-center p-6 w-full max-w-2xl mx-auto mb-6 bg-purple-900 rounded-2xl shadow-xl">
       <form onSubmit={handlePostSubmit} className="w-full">
         <div
-          className="w-full h-52 bg-gray-700 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-600 transition"
+          className="w-full h-52 bg-gray-200 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-600 transition"
           onClick={() => document.getElementById("mediaInput")?.click()}
         >
           {mediaPreview ? (
@@ -83,7 +83,7 @@ const PostCreation = () => {
           onChange={handleMediaSelect}
         />
         <textarea
-          className="w-full mt-4 p-3 bg-gray-800 text-white rounded-lg focus:outline-none resize-none text-lg"
+          className="w-full mt-4 p-3 bg-gray-300 text-gray-900 rounded-lg focus:outline-none resize-none text-lg"
           rows={4}
           placeholder="Write something..."
           value={postText}
