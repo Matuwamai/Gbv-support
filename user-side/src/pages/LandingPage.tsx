@@ -3,7 +3,6 @@ import banner from "../assets/gvb.webp"
 export default function LandingPage() {
     return (
         <div className="min-h-screen bg-gray-100 text-gray-900">
-            {/* Hero Section */}
             <header className="bg-purple-600 text-white py-20 text-center flex flex-col items-center">
                 <div className="mt-6 space-x-4">
                     <button className="bg-white text-purple-600 px-6 py-3 text-lg rounded-sm text-xl font-semibold" onClick={() => window.location.href = '/signup'}>
@@ -22,16 +21,11 @@ export default function LandingPage() {
 
                 </div>
             </header>
-
-            {/* About Us Section */}
             <section
                 className="relative py-32 px-6 md:px-12 text-center bg-gray-300 bg-cover bg-center min-h-[80vh]"
                 style={{ backgroundImage: `url(${banner})` }}
             >
-                {/* Overlay */}
                 <div className="absolute inset-0 bg-black/50"></div>
-
-                {/* Content */}
                 <div className="relative z-10 container mx-auto text-white">
                     <h2 className="text-3xl md:text-4xl text-gray-300 font-semibold">About Us</h2>
                     <p className="mt-4 text-lg md:text-xl font-semibold text-gray-300 max-w-3xl mx-auto">
@@ -41,7 +35,6 @@ export default function LandingPage() {
                     </p>
                 </div>
             </section>
-            {/* Features Section */}
             <section className="py-16 px-6 md:px-12 bg-gray-200">
                 <div className="container mx-auto text-center">
                     <h2 className="text-3xl md:text-4xl font-semibold text-purple-600">What We Offer</h2>
@@ -68,8 +61,6 @@ export default function LandingPage() {
                     </div>
                 </div>
             </section>
-
-            {/* Call to Action */}
             <section className="py-16 bg-purple-600 text-white text-center">
                 <h2 className="text-3xl md:text-4xl font-semibold">Join the Movement</h2>
                 <p className="mt-4 text-lg md:text-xl max-w-3xl mx-auto">

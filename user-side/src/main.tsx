@@ -11,7 +11,6 @@ import NewPost from "./components/Createpost";
 import ProfilePage from "./pages/ProfilePage";
 import Dashboard from "./pages/Dahboard";
 import EmergencyPage from "./pages/Emergencycall";
-import CasePage from "./pages/CasesPage";
 import LandingPage from "./pages/LandingPage";
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -27,7 +26,6 @@ createRoot(document.getElementById("root")!).render(
                 <Route path="/newpost" element={<NewPost />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/emergency" element={<EmergencyPage />} />
-                <Route path="/cases" element={<CasePage />} />
               </Route>
             </Route>
           </Routes>

@@ -1,6 +1,6 @@
 import { useState, useContext } from "react";
 import { Link } from "react-router-dom";
-import { PlusCircle, ShieldAlert, PhoneCall, User } from "lucide-react";
+import { PlusCircle,  PhoneCall, User } from "lucide-react";
 import { Authcontext } from "../context/authContext";
 import { useNavigate } from "react-router-dom";
 
@@ -19,16 +19,12 @@ const Navbar = () => {
         <nav className="bg-purple-600 text-white p-5 shadow-md fixed top-0 w-full z-50">
             <div className="container mx-auto flex justify-between items-center">
                 <a href="/dashboard" className="text-lg font-bold md:text-xl mx-1">
-                    GBV<span className="hidden md:inline"> Support</span>
+                    GBV
                 </a>
                 <ul className="flex items-center gap-4 text-sm md:text-sm">
                     <li className="flex items-center gap-1">
                         <PlusCircle size={18} />
                         <Link to="/newpost">Post</Link>
-                    </li>
-                    <li className="flex items-center gap-1">
-                        <ShieldAlert size={18} />
-                        <Link to="/cases">Cases</Link>
                     </li>
                     <li className="flex items-center gap-1">
                         <PhoneCall size={18} />
