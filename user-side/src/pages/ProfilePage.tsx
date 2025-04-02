@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import EditIcon from '@mui/icons-material/Edit';
+import UserPostsPage from "./UserPosts";
 
 const API_BASE_URL = "http://localhost:3000/api";
 
@@ -63,7 +64,7 @@ export default function ProfilePage() {
       setMessage("User not found. Please log in again.");
       return;
     }
-    
+
     const parsedUser = JSON.parse(storedUser);
     const formData = new FormData();
     formData.append("contact", user.contact);
@@ -88,7 +89,7 @@ export default function ProfilePage() {
 
   return (
     <div className={`min-h-screen p-6 bg-white text-white mt-14 mx-0`}>
-      <div className="max-w-2xl mx-auto p-6 rounded-xl shadow-lg bg-gray-100 dark:bg-purple-800">
+      <div className="max-w-2xl mx-auto p-6 rounded-xl shadow-lg bg-purple-600 ">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold">Profile</h2>
         </div>
@@ -146,6 +147,7 @@ export default function ProfilePage() {
           Save Changes
         </button>
       </div>
+      <UserPostsPage />
     </div>
   );
 }

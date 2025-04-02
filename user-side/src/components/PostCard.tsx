@@ -91,7 +91,6 @@ const PostCard: React.FC<{ post: Post; setPosts?: any }> = ({ post, setPosts }) 
     }
   
     try {
-      // Optimistic UI update
       setLikes((prev) => prev + 1);
       setLiked(true);
   
@@ -101,11 +100,11 @@ const PostCard: React.FC<{ post: Post; setPosts?: any }> = ({ post, setPosts }) 
         reaction: "LIKE",
       });
   
-      setLikes(response.data.likes); // Ensure sync with backend
+      setLikes(response.data.likes); 
       triggerRefresh()
     } catch (error) {
       console.error("Error liking post:", error);
-      setLikes((prev) => prev - 1); // Revert UI on error
+      setLikes((prev) => prev - 1); 
     }
   };
   
@@ -113,9 +112,8 @@ const PostCard: React.FC<{ post: Post; setPosts?: any }> = ({ post, setPosts }) 
     if (!newComment.trim()) return;
   
     try {
-      // Optimistic UI update
       const tempComment = {
-        id: Math.random().toString(), // Temporary ID
+        id: Math.random().toString(), 
         content: newComment,
         userId: currentUser?.id,
         createdAt: new Date().toISOString(),
@@ -132,9 +130,10 @@ const PostCard: React.FC<{ post: Post; setPosts?: any }> = ({ post, setPosts }) 
   
       setComments((prev) => prev.map((c) => (c.id === tempComment.id ? response.data : c)));
       triggerRefresh()
+      window.location.reload();
     } catch (error) {
       console.error("Error posting comment:", error);
-      setComments((prev) => prev.filter((c) => c.id !== tempComment.id)); // Revert UI on error
+      setComments((prev) => prev.filter((c) => c.id !== tempComment.id)); 
     }
   };
   
@@ -145,7 +144,6 @@ const PostCard: React.FC<{ post: Post; setPosts?: any }> = ({ post, setPosts }) 
     }
   
     try {
-      // Optimistic UI update
       setReposted(true);
       setReposts((prev) => prev + 1);
   
@@ -154,14 +152,16 @@ const PostCard: React.FC<{ post: Post; setPosts?: any }> = ({ post, setPosts }) 
         postId: post.id,
       });
   
-      setReposts(response.data.reposts); // Sync with backend
+      setReposts(response.data.reposts); 
   
       if (setPosts) {
         setPosts((prevPosts) => [response.data.repost, ...prevPosts]);
       }
+      triggerRefresh()
+      window.location.reload();
     } catch (error) {
       console.error("Error reposting post:", error);
-      setReposts((prev) => prev - 1); // Revert UI on error
+      setReposts((prev) => prev - 1); 
     }
   };
   

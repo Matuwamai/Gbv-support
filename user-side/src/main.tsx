@@ -11,6 +11,7 @@ import ProfilePage from "./pages/ProfilePage";
 import Dashboard from "./pages/Dahboard";
 import EmergencyPage from "./pages/Emergencycall";
 import LandingPage from "./pages/LandingPage";
+import UpdatePostPage from "./pages/EditPost";
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <AuthContextProvider>
@@ -24,6 +25,7 @@ createRoot(document.getElementById("root")!).render(
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/emergency" element={<EmergencyPage />} />
+                <Route path="/update-post/:id" element={<UpdatePostPage />} />
               </Route>
             </Route>
           </Routes>
