@@ -11,6 +11,7 @@ import ProfilePage from "./pages/ProfilePage";
 import Dashboard from "./pages/Dahboard";
 import EmergencyPage from "./pages/Emergencycall";
 import LandingPage from "./pages/LandingPage";
+import AwarenessEducationPage from "./pages/AwarenessEducationPage";
 import UpdatePostPage from "./pages/EditPost";
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
