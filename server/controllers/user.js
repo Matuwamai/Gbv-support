@@ -98,28 +98,34 @@ export const getUserById = async (req, res) => {
 
     const user = await prisma.user.findUnique({
       where: { id: userIdNum },
-      select: { 
-        id: true, 
-        name: true, 
-        email: true, 
-        birthday: true, 
-        gender: true, 
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        birthday: true,
+        gender: true,
         profileImage: true,
-        contact: true,      
-        createdAt: true 
+        contact: true,
+        createdAt: true,
       },
     });
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+    const baseUrl = process.env.BASE_URL || "http://localhost:3000";
+    const updatedUser = {
+      ...user,
+      profileImage: user.profileImage ? `${baseUrl}/${user.profileImage}` : null,
+    };
 
-    return res.status(200).json(user);
+    return res.status(200).json(updatedUser);
   } catch (error) {
     console.error("Get User Error:", error);
     return res.status(500).json({ message: "Server error" });
   }
 };
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "uploads/");
