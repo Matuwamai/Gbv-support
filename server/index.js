@@ -9,12 +9,13 @@ import repostRoutes from "./routes/reposts.js";
 import caseRoutes from "./routes/cases.js";
 import callRoutes from "./routes/emergency_call.js"
 import authorityRoutes from "./routes/Authorities.js";
+import { UPLOAD_DIR } from "./lib/upload.js";
 
 const app = express();
 const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
-app.use("/uploads", express.static("uploads"));
+app.use("/uploads", express.static(UPLOAD_DIR));
 app.use("/api/users", userRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/comments", commentRoutes);

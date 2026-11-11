@@ -1,24 +1,11 @@
 import prisma from "../lib/prisma.js";
 import { withPostMedia } from "../lib/media.js";
-import multer from "multer";
-import path from "path";
+import { toUploadPath, removeUpload } from "../lib/upload.js";
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/");
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));
-  },
-});
-
-
-const upload = multer({ storage }).single("mediaUrl");
 export const createPost = async (req, res) => {
   try {
     const { content, userId } = req.body;
 
-    console.log("User ID:", userId);
     if (!userId || isNaN(parseInt(userId, 10))) {
       return res.status(400).json({ message: "Invalid or missing userId" });
     }
@@ -29,7 +16,7 @@ export const createPost = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    const mediaUrl = req.file ? `/uploads/${req.file.filename}` : null;
+    const mediaUrl = toUploadPath(req.file);
 
     const post = await prisma.post.create({
       data: { content, userId: numericUserId, mediaUrl: mediaUrl },
@@ -111,9 +98,6 @@ export const updatePost = async (req, res) => {
     const { content } = req.body;
     const { postId } = req.params;
 
-    console.log("Received content:", content);
-    console.log("Received file:", req.file);
-
     if (!postId) {
       return res.status(400).json({ message: "Invalid post ID" });
     }
@@ -124,12 +108,16 @@ export const updatePost = async (req, res) => {
       return res.status(404).json({ message: "Post not found" });
     }
 
-    const mediaUrl = req.file ? `/uploads/${req.file.filename}` : existingPost.mediaUrl;
+    const mediaUrl = req.file ? toUploadPath(req.file) : existingPost.mediaUrl;
 
     const updatedPost = await prisma.post.update({
       where: { id: parseInt(postId, 10) },
       data: { content, mediaUrl },
     });
+
+    if (req.file && existingPost.mediaUrl) {
+      await removeUpload(existingPost.mediaUrl);
+    }
 
     return res.status(200).json({ message: "Post updated successfully", post: withPostMedia(updatedPost) });
   } catch (error) {
@@ -165,6 +153,7 @@ export const deletePost = async (req, res) => {
 
     // Now delete the post
     await prisma.post.delete({ where: { id: parsedPostId } });
+    await removeUpload(existingPost.mediaUrl);
 
     return res.status(200).json({ message: "Post deleted successfully" });
   } catch (error) {

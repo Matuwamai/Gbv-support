@@ -1,8 +1,7 @@
 import prisma from "../lib/prisma.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import multer from "multer";
-import path from "path";
+import { toUploadPath, removeUpload } from "../lib/upload.js";
 import { withUserImage } from "../lib/media.js";
 const SECRET_KEY = process.env.JWT_SECRET ; 
 export const registerUser = async (req, res) => {
@@ -120,16 +119,6 @@ export const getUserById = async (req, res) => {
   }
 };
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/");
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  },
-});
-
-const upload = multer({ storage });
 export const updateUser = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -140,7 +129,7 @@ export const updateUser = async (req, res) => {
     }
 
     const { name, email, birthday, gender, contact } = req.body;
-    const profileImage = req.file ? `/uploads/${req.file.filename}` : null;
+    const profileImage = toUploadPath(req.file);
 
     const updateData = {};
     if (name) updateData.name = name;
@@ -149,6 +138,11 @@ export const updateUser = async (req, res) => {
     if (gender) updateData.gender = gender;
     if (contact) updateData.contact = contact;
     if (profileImage) updateData.profileImage = profileImage;
+
+    const existingUser = await prisma.user.findUnique({ where: { id: userIdNum } });
+    if (!existingUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
     const updatedUser = await prisma.user.update({
       where: { id: userIdNum },
@@ -164,6 +158,10 @@ export const updateUser = async (req, res) => {
         createdAt: true,
       },
     });
+
+    if (profileImage && existingUser.profileImage) {
+      await removeUpload(existingUser.profileImage);
+    }
 
     return res.status(200).json(withUserImage(updatedUser));
   } catch (error) {
