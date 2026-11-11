@@ -1,7 +1,7 @@
 import { useState, useContext } from "react";
 import { Link } from "react-router-dom";
 import { PlusCircle,  PhoneCall, User } from "lucide-react";
-import { Authcontext } from "../context/authContext";
+import { Authcontext } from "../context/auth";
 import { useNavigate } from "react-router-dom";
 
 const Navbar = () => {

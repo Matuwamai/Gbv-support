@@ -1,6 +1,6 @@
 import React, { useState, useContext } from "react";
 import { FaRegImage } from "react-icons/fa";
-import { Authcontext } from "../context/authContext";
+import { Authcontext } from "../context/auth";
 import axios from "axios";
 
 const PostCreation = () => {

@@ -1,69 +1,73 @@
-import { createContext, useEffect, useState, ReactNode } from "react";
-import axios from "axios";
+import { useCallback, useEffect, useMemo, useState, ReactNode } from "react";
 import { jwtDecode } from "jwt-decode";
+import api, { AUTH_EXPIRED_EVENT, AUTH_STORAGE_KEY, getErrorMessage } from "../lib/api";
+import { Authcontext, CurrentUser } from "./auth";
 
-interface AuthContextType {
-  currentUser: { id: string; name: string; token: string } | null;
-  login: (inputs: { email: string; password: string }) => Promise<string | null>; // Return success or error message
-  logout: () => void;
-}
+const isTokenExpired = (token: string) => {
+  try {
+    const { exp } = jwtDecode<{ exp?: number }>(token);
+    return typeof exp === "number" && exp * 1000 <= Date.now();
+  } catch {
+    return true;
+  }
+};
 
-const API_BASE_URL = "http://localhost:3000/api";
-export const Authcontext = createContext<AuthContextType | null>(null);
+// Restore a saved session, discarding it if it is malformed or expired.
+const loadStoredUser = (): CurrentUser | null => {
+  try {
+    const stored = localStorage.getItem(AUTH_STORAGE_KEY);
+    if (!stored) return null;
+    const user = JSON.parse(stored) as CurrentUser;
+    if (!user?.token || isTokenExpired(user.token)) {
+      localStorage.removeItem(AUTH_STORAGE_KEY);
+      return null;
+    }
+    return user;
+  } catch {
+    localStorage.removeItem(AUTH_STORAGE_KEY);
+    return null;
+  }
+};
 
 export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
-  const [currentUser, setCurrentUser] = useState(
-    localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")!) : null
-  );
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(loadStoredUser);
 
-  const login = async (inputs: { email: string; password: string }) => {
-    setError(null);
-    setSuccess(null);
+  const clearSession = useCallback(() => {
+    setCurrentUser(null);
+    localStorage.removeItem(AUTH_STORAGE_KEY);
+  }, []);
+
+  const login = useCallback(async (inputs: { email: string; password: string }) => {
     try {
-      const res = await axios.post(`${API_BASE_URL}/users/login`, inputs);
-
-      console.log("Login Response:", res.data);
-
-      const decodedToken: any = jwtDecode(res.data.token);
-
-      console.log("Decoded Token:", decodedToken); 
-
-      const userData = {
+      const res = await api.post("/users/login", inputs);
+      const userData: CurrentUser = {
         id: res.data.user.id,
         name: res.data.user.name,
         token: res.data.token,
       };
-
+      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(userData));
       setCurrentUser(userData);
-      localStorage.setItem("user", JSON.stringify(userData));
-      setSuccess("Login successful! Redirecting...");
-
-      return null; // No error, so return null
-    } catch (error: any) {
-      console.error("Login Error:", error);
-      setError(error.response?.data?.message || "An error occurred. Please try again.");
-      return error.response?.data?.message || "An error occurred. Please try again."; // Return error message
-    }
-  };
-
-  const logout = async () => {
-    await axios.post(`${API_BASE_URL}/users/logout`);
-    setCurrentUser(null);
-    localStorage.removeItem("user");
-  };
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setCurrentUser(JSON.parse(storedUser));
+      return null;
+    } catch (error) {
+      return getErrorMessage(error, "Login failed. Please try again.");
     }
   }, []);
 
-  return (
-    <Authcontext.Provider value={{ currentUser, login, logout }}>
-      {children}
-    </Authcontext.Provider>
-  );
+  const logout = useCallback(async () => {
+    try {
+      await api.post("/users/logout");
+    } catch {
+      // Logging out locally must work even if the server can't be reached.
+    }
+    clearSession();
+  }, [clearSession]);
+
+  useEffect(() => {
+    window.addEventListener(AUTH_EXPIRED_EVENT, clearSession);
+    return () => window.removeEventListener(AUTH_EXPIRED_EVENT, clearSession);
+  }, [clearSession]);
+
+  const value = useMemo(() => ({ currentUser, login, logout }), [currentUser, login, logout]);
+
+  return <Authcontext.Provider value={value}>{children}</Authcontext.Provider>;
 };

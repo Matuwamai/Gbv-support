@@ -1,6 +1,6 @@
 import React, { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Authcontext } from "../context/authContext";
+import { Authcontext } from "../context/auth";
 
 const Login: React.FC = () => {
   const authContext = useContext(Authcontext);

@@ -3,7 +3,7 @@ import axios from "axios";
 import ThumbUpIcon from "@mui/icons-material/ThumbUp";
 import ModeCommentIcon from "@mui/icons-material/ModeComment";
 import { BiRepost } from "react-icons/bi";
-import { Authcontext } from "../context/authContext";
+import { Authcontext } from "../context/auth";
 
 interface User {
   id: string;
