@@ -1,9 +1,17 @@
 import { useState, ChangeEvent, FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
+import api, { getErrorMessage } from "../lib/api";
+import { useAuth } from "../context/auth";
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const CURRENT_YEAR = new Date().getFullYear();
+const YEARS = Array.from({ length: 100 }, (_, i) => CURRENT_YEAR - i);
+const MIN_PASSWORD_LENGTH = 6;
 
 const SignUp = () => {
   const navigate = useNavigate();
-  
+  const { currentUser } = useAuth();
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -14,129 +22,186 @@ const SignUp = () => {
     email: "",
     password: "",
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const API_BASE_URL  = "http://localhost:3000/api"
-const [loading, setLoading] = useState(true);
+  if (currentUser) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const validate = () => {
+    const { day, month, year, password, email } = formData;
+    if (!day || !month || !year) return "Please select a valid birthday.";
+
+    // Reject impossible dates such as 31 February.
+    const date = new Date(Number(year), Number(month) - 1, Number(day));
+    if (date.getMonth() !== Number(month) - 1) return "That date does not exist.";
+    if (date > new Date()) return "Birthday cannot be in the future.";
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return "Please enter a valid email.";
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      return `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`;
+    }
+    if (!formData.gender) return "Please select your gender.";
+    return "";
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-
-    if (!formData.day || !formData.month || !formData.year) {
-      alert("Please select a valid birthday.");
-      return;
-    }
+    const validationError = validate();
+    setError(validationError);
+    if (validationError) return;
 
     const birthday = `${formData.year}-${formData.month.padStart(2, "0")}-${formData.day.padStart(2, "0")}`;
 
-    const userData = {
-      name: `${formData.firstName} ${formData.lastName}`,
-      birthday, 
-      Gender: formData.gender,
-      email: formData.email,
-      password: formData.password,
-    };
-
+    setLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/users/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(userData),
+      await api.post("/users/register", {
+        name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
+        birthday,
+        gender: formData.gender,
+        email: formData.email.trim(),
+        password: formData.password,
       });
-
-      const text = await response.text();
-      const data = text ? JSON.parse(text) : null;
-
-      if (response.ok) {
-        navigate("/login");
-      } else {
-        alert(data?.message || "Signup failed. Please try again.");
-      }
-    } catch (error) {
-      console.error("Signup error:", error);
-      alert("An error occurred. Please check your internet connection and try again.");
-    } finally{
-      setLoading(false)
+      navigate("/login", { state: { registered: true } });
+    } catch (err) {
+      setError(getErrorMessage(err, "Signup failed. Please try again."));
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="flex flex-col justify-center items-center min-h-screen bg-gray-100 px-4">
-      <h1 className="mb-4 text-2xl text-purple-600 font-bold text-center">
-        Gender-Based Violence 
-      </h1>
+      <h1 className="mb-4 text-2xl text-purple-600 font-bold text-center">Gender-Based Violence</h1>
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md mx-auto">
         <h2 className="text-2xl font-semibold text-center text-purple-600 mb-4">Create Account</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        {error && (
+          <p className="text-red-500 font-bold text-sm text-center mb-3" role="alert">
+            {error}
+          </p>
+        )}
+        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
           <div className="flex flex-col sm:flex-row gap-2">
             <input
               type="text"
               name="firstName"
               placeholder="First Name"
+              aria-label="First name"
+              value={formData.firstName}
               onChange={handleChange}
               className="w-full sm:w-1/2 p-2 border rounded"
+              autoComplete="given-name"
               required
             />
             <input
               type="text"
               name="lastName"
               placeholder="Last Name"
+              aria-label="Last name"
+              value={formData.lastName}
               onChange={handleChange}
               className="w-full sm:w-1/2 p-2 border rounded"
+              autoComplete="family-name"
               required
             />
           </div>
 
-          <div>
-            <label className="block text-gray-700">Birthday</label>
+          <fieldset>
+            <legend className="block text-gray-700">Birthday</legend>
             <div className="flex gap-2">
-              <select name="day" onChange={handleChange} className="w-1/3 p-2 border rounded" required>
+              <select name="day" aria-label="Day" value={formData.day} onChange={handleChange} className="w-1/3 p-2 border rounded" required>
                 <option value="">Day</option>
-                {[...Array(31)].map((_, i) => (
-                  <option key={i + 1} value={String(i + 1)}>{i + 1}</option>
+                {Array.from({ length: 31 }, (_, i) => (
+                  <option key={i + 1} value={String(i + 1)}>
+                    {i + 1}
+                  </option>
                 ))}
               </select>
-              <select name="month" onChange={handleChange} className="w-1/3 p-2 border rounded" required>
+              <select name="month" aria-label="Month" value={formData.month} onChange={handleChange} className="w-1/3 p-2 border rounded" required>
                 <option value="">Month</option>
-                {["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].map((m, i) => (
-                  <option key={i} value={String(i + 1)}>{m}</option>
+                {MONTHS.map((m, i) => (
+                  <option key={m} value={String(i + 1)}>
+                    {m}
+                  </option>
                 ))}
               </select>
-              <select name="year" onChange={handleChange} className="w-1/3 p-2 border rounded" required>
+              <select name="year" aria-label="Year" value={formData.year} onChange={handleChange} className="w-1/3 p-2 border rounded" required>
                 <option value="">Year</option>
-                {[...Array(100)].map((_, i) => (
-                  <option key={i} value={String(2025 - i)}>{2025 - i}</option>
+                {YEARS.map((year) => (
+                  <option key={year} value={String(year)}>
+                    {year}
+                  </option>
                 ))}
               </select>
             </div>
-          </div>
+          </fieldset>
 
-          <div>
-            <label className="block text-gray-700">Gender</label>
+          <fieldset>
+            <legend className="block text-gray-700">Gender</legend>
             <div className="flex gap-4">
-              <label><input type="radio" name="gender" value="Male" onChange={handleChange} required /> Male</label>
-              <label><input type="radio" name="gender" value="Female" onChange={handleChange} required /> Female</label>
-              <label><input type="radio" name="gender" value="Others" onChange={handleChange} required /> Others</label>
+              {[
+                ["MALE", "Male"],
+                ["FEMALE", "Female"],
+                ["OTHER", "Other"],
+              ].map(([value, label]) => (
+                <label key={value} className="flex items-center gap-1">
+                  <input
+                    type="radio"
+                    name="gender"
+                    value={value}
+                    checked={formData.gender === value}
+                    onChange={handleChange}
+                    required
+                  />
+                  {label}
+                </label>
+              ))}
             </div>
-          </div>
+          </fieldset>
 
-          <input type="email" name="email" placeholder="Email" onChange={handleChange} className="w-full p-2 border rounded" required />
-          <input type="password" name="password" placeholder="Password" onChange={handleChange} className="w-full p-2 border rounded" required />
+          <input
+            type="email"
+            name="email"
+            placeholder="Email"
+            aria-label="Email"
+            value={formData.email}
+            onChange={handleChange}
+            className="w-full p-2 border rounded"
+            autoComplete="email"
+            required
+          />
+          <input
+            type="password"
+            name="password"
+            placeholder={`Password (at least ${MIN_PASSWORD_LENGTH} characters)`}
+            aria-label="Password"
+            value={formData.password}
+            onChange={handleChange}
+            className="w-full p-2 border rounded"
+            autoComplete="new-password"
+            minLength={MIN_PASSWORD_LENGTH}
+            required
+          />
 
-          {loading ? (<button type="submit" className="w-full bg-purple-500 text-white py-2 rounded hover:bg-purple-600 transition duration-300">
-            Sign Up
-          </button>):(<button
-          className="w-full bg-purple-500 text-white py-2 rounded hover:bg-purple-600 transition duration-300"
-          >Creating Account ....</button>)}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-purple-500 text-white py-2 rounded hover:bg-purple-600 transition duration-300 disabled:opacity-60"
+          >
+            {loading ? "Creating Account..." : "Sign Up"}
+          </button>
         </form>
 
         <p className="text-center mt-4">
           Already have an account?{" "}
-          <a href="/login" className="text-purple-700 hover:underline">
+          <Link to="/login" className="text-purple-700 hover:underline">
             Login
-          </a>
+          </Link>
         </p>
       </div>
     </div>
