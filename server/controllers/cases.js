@@ -1,26 +1,38 @@
 import prisma from "../lib/prisma.js";
 
+const CASE_STATUSES = ["PENDING", "IN_PROGRESS", "RESOLVED"];
+
+const caseInclude = {
+  user: { select: { id: true, name: true } },
+  post: { select: { id: true, content: true } },
+  assignedTo: { select: { id: true, name: true, contact: true } },
+};
+
+const parseId = (value) => {
+  const id = parseInt(value, 10);
+  return isNaN(id) ? null : id;
+};
+
+// Any signed-in user can report a post; the reporter comes from the token.
 export const createCase = async (req, res) => {
   try {
-    const { userId, postId } = req.body;
-    
-    if (!userId || !postId) {
-      return res.status(400).json({ error: "Missing required fields: userId and postId" });
+    const postId = parseId(req.body.postId);
+    if (!postId) {
+      return res.status(400).json({ error: "Missing or invalid postId" });
     }
-    const userExists = await prisma.user.findUnique({ where: { id: userId } });
-    if (!userExists) {
-      return res.status(404).json({ error: "User not found" });
-    }
+
     const postExists = await prisma.post.findUnique({ where: { id: postId } });
     if (!postExists) {
       return res.status(404).json({ error: "Post not found" });
     }
-    const newCase = await prisma.case.create({
-      data: { 
-        userId, 
-        postId 
-      },
-    });
+
+    const userId = req.user.id;
+    const existingCase = await prisma.case.findFirst({ where: { userId, postId } });
+    if (existingCase) {
+      return res.status(409).json({ error: "You have already reported this post", case: existingCase });
+    }
+
+    const newCase = await prisma.case.create({ data: { userId, postId } });
 
     return res.status(201).json({ message: "Case reported successfully", case: newCase });
   } catch (error) {
@@ -31,12 +43,14 @@ export const createCase = async (req, res) => {
 
 export const getAllCases = async (req, res) => {
   try {
+    const { status } = req.query;
+    if (status && !CASE_STATUSES.includes(status)) {
+      return res.status(400).json({ error: "Invalid status filter" });
+    }
+
     const cases = await prisma.case.findMany({
-      include: {
-        user: { select: { id: true, name: true } },
-        post: { select: { id: true, content: true } },
-        assignedTo: { select: { id: true, name: true, contact: true } },
-      },
+      where: status ? { status } : undefined,
+      include: caseInclude,
       orderBy: { createdAt: "desc" },
     });
     return res.status(200).json(cases);
@@ -45,22 +59,15 @@ export const getAllCases = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 export const getCaseById = async (req, res) => {
   try {
-    const { caseId } = req.params;
-    if (!caseId || isNaN(caseId)) {
+    const caseId = parseId(req.params.caseId);
+    if (!caseId) {
       return res.status(400).json({ error: "Invalid case ID" });
     }
 
-    const caseItem = await prisma.case.findUnique({
-      where: { id: parseInt(caseId) },
-      include: {
-        user: { select: { id: true, name: true } },
-        post: { select: { id: true, content: true } },
-        assignedTo: { select: { id: true, name: true, contact: true } },
-      },
-    });
-
+    const caseItem = await prisma.case.findUnique({ where: { id: caseId }, include: caseInclude });
     if (!caseItem) {
       return res.status(404).json({ error: "Case not found" });
     }
@@ -71,47 +78,69 @@ export const getCaseById = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
- 
+
 export const updateCase = async (req, res) => {
-    try {
-      const { caseId } = req.params;
-      if (!caseId || isNaN(caseId)) {
-        return res.status(400).json({ error: "Invalid case ID" });
-      }
-  
-      const { status, assignedToId } = req.body;
-      if (assignedToId !== undefined && assignedToId !== null) {
-        const authorityExists = await prisma.authority.findUnique({
-          where: { id: assignedToId },
-        });
-        if (!authorityExists) {
-          return res.status(404).json({ error: "Authority not found" });
-        }
-      }
-  
-      const updatedCase = await prisma.case.update({
-        where: { id: parseInt(caseId) },
-        data: { status, assignedToId },
-      });
-  
-      return res.status(200).json({ message: "Case updated successfully", case: updatedCase });
-    } catch (error) {
-      console.error("Update Case Error:", error);
-      return res.status(500).json({ error: "Internal Server Error" });
-    }
-  };
-export const deleteCase = async (req, res) => {
   try {
-    const { caseId } = req.params;
-    if (!caseId || isNaN(caseId)) {
+    const caseId = parseId(req.params.caseId);
+    if (!caseId) {
       return res.status(400).json({ error: "Invalid case ID" });
     }
-    const existingCase = await prisma.case.findUnique({ where: { id: parseInt(caseId) } });
+
+    const { status, assignedToId } = req.body;
+    const data = {};
+
+    if (status !== undefined) {
+      if (!CASE_STATUSES.includes(status)) {
+        return res.status(400).json({ error: `Status must be one of ${CASE_STATUSES.join(", ")}` });
+      }
+      data.status = status;
+    }
+
+    if (assignedToId === null) {
+      data.assignedToId = null;
+    } else if (assignedToId !== undefined) {
+      const authorityId = parseId(assignedToId);
+      if (!authorityId) {
+        return res.status(400).json({ error: "Invalid assignedToId" });
+      }
+      const authorityExists = await prisma.authority.findUnique({ where: { id: authorityId } });
+      if (!authorityExists) {
+        return res.status(404).json({ error: "Authority not found" });
+      }
+      data.assignedToId = authorityId;
+    }
+
+    const existingCase = await prisma.case.findUnique({ where: { id: caseId } });
     if (!existingCase) {
       return res.status(404).json({ error: "Case not found" });
     }
 
-    await prisma.case.delete({ where: { id: parseInt(caseId) } });
+    const updatedCase = await prisma.case.update({
+      where: { id: caseId },
+      data,
+      include: caseInclude,
+    });
+
+    return res.status(200).json({ message: "Case updated successfully", case: updatedCase });
+  } catch (error) {
+    console.error("Update Case Error:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+export const deleteCase = async (req, res) => {
+  try {
+    const caseId = parseId(req.params.caseId);
+    if (!caseId) {
+      return res.status(400).json({ error: "Invalid case ID" });
+    }
+
+    const existingCase = await prisma.case.findUnique({ where: { id: caseId } });
+    if (!existingCase) {
+      return res.status(404).json({ error: "Case not found" });
+    }
+
+    await prisma.case.delete({ where: { id: caseId } });
     return res.status(200).json({ message: "Case deleted successfully" });
   } catch (error) {
     console.error("Delete Case Error:", error);
