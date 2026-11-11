@@ -1,8 +1,7 @@
-import { PrismaClient } from "@prisma/client";
+import prisma from "../lib/prisma.js";
 import multer from "multer";
 import path from "path";
 
-const prisma = new PrismaClient();
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "uploads/");

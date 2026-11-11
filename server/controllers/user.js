@@ -1,9 +1,8 @@
-import { PrismaClient } from "@prisma/client";
+import prisma from "../lib/prisma.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import multer from "multer";
 import path from "path";
-const prisma = new PrismaClient();
 const SECRET_KEY = process.env.JWT_SECRET ; 
 export const registerUser = async (req, res) => {
   try {
