@@ -6,13 +6,16 @@ import {
   updateAuthority,
   deleteAuthority,
 } from "../controllers/Authorites.js";
+import { requireAuth, requireStaff } from "../lib/auth.js";
 
 const router = express.Router();
 
-router.post("/", createAuthority);
+router.use(requireAuth);
+
 router.get("/", getAllAuthorities);
 router.get("/:authorityId", getAuthorityById);
-router.put("/:authorityId", updateAuthority);
-router.delete("/:authorityId", deleteAuthority);
+router.post("/", requireStaff, createAuthority);
+router.put("/:authorityId", requireStaff, updateAuthority);
+router.delete("/:authorityId", requireStaff, deleteAuthority);
 
 export default router;
