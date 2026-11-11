@@ -1,115 +1,119 @@
-import { useState, useEffect } from "react";
-import axios from "axios";
-import { useNavigate } from "react-router-dom"; 
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import api, { getErrorMessage } from "../lib/api";
+import { useAuth } from "../context/auth";
+import type { Post, Repost } from "../types";
 import PostCard from "../components/PostCard";
 import RepostCard from "../components/rePostCard";
 
-const API_BASE_URL = "http://localhost:3000/api";
-
 export default function UserPostsPage() {
-  const [posts, setPosts] = useState([]);
-  const [reposts, setReposts] = useState([]);
+  const { currentUser } = useAuth();
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [reposts, setReposts] = useState<Repost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
+  const userId = currentUser?.id;
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      const parsedUser = JSON.parse(storedUser);
-      fetchPostsAndReposts(parsedUser.id);
-    }
-  }, []);
-
-  const fetchPostsAndReposts = async (userId: number) => {
+  const fetchPostsAndReposts = useCallback(async () => {
+    if (!userId) return;
     try {
-      const postsResponse = await axios.get(`${API_BASE_URL}/posts/user/${userId}`);
-      const repostsResponse = await axios.get(`${API_BASE_URL}/reposts/user/${userId}`);
-      
+      const [postsResponse, repostsResponse] = await Promise.all([
+        api.get<Post[]>(`/posts/user/${userId}`),
+        api.get<Repost[]>(`/reposts/user/${userId}`),
+      ]);
       setPosts(postsResponse.data);
       setReposts(repostsResponse.data);
-    } catch (error) {
-      setError("Error fetching posts and reposts.");
+    } catch (err) {
+      setError(getErrorMessage(err, "Error fetching posts and reposts."));
     } finally {
       setLoading(false);
     }
+  }, [userId]);
+
+  useEffect(() => {
+    fetchPostsAndReposts();
+  }, [fetchPostsAndReposts]);
+
+  const showResult = (message: string, isError = false) => {
+    setError(isError ? message : "");
+    setSuccessMessage(isError ? "" : message);
   };
 
-  const handleDelete = async (postId: number) => {
+  const handleDeletePost = async (postId: number) => {
+    if (!window.confirm("Delete this post? This also removes its comments and reposts.")) return;
     try {
-      await axios.delete(`${API_BASE_URL}/posts/${postId}`);
-      setSuccessMessage("Post deleted successfully!");
-      // Remove deleted post from the state
-      setPosts(posts.filter(post => post.id !== postId));
-      setReposts(reposts.filter(repost => repost.id !== postId));
-    } catch (error) {
-      setError("Failed to delete post.");
+      await api.delete(`/posts/${postId}`);
+      setPosts((prev) => prev.filter((post) => post.id !== postId));
+      showResult("Post deleted successfully!");
+    } catch (err) {
+      showResult(getErrorMessage(err, "Failed to delete post."), true);
     }
   };
 
-  const handleUpdate = (postId: number) => {
-    navigate(`/update-post/${postId}`); // Redirect to update page for editing
+  // Removing a repost must call the reposts endpoint: the repost id is not a post id.
+  const handleRemoveRepost = async (repostId: number) => {
+    if (!window.confirm("Remove this repost?")) return;
+    try {
+      await api.delete(`/reposts/${repostId}`);
+      setReposts((prev) => prev.filter((repost) => repost.id !== repostId));
+      showResult("Repost removed.");
+    } catch (err) {
+      showResult(getErrorMessage(err, "Failed to remove repost."), true);
+    }
   };
 
   return (
-    <div className="min-h-screen p-6 bg-gray-100">
+    <div className="min-h-screen p-6 bg-gray-100 text-gray-900">
       <div className="max-w-3xl mx-auto bg-white p-6 rounded-xl shadow-lg">
         <h2 className="text-2xl font-bold mb-4">Your Posts & Reposts</h2>
 
         {loading && <p>Loading posts...</p>}
-        {error && <p className="text-red-500">{error}</p>}
-        {successMessage && <p className="text-green-500">{successMessage}</p>}
+        {error && <p className="text-red-500 mb-4">{error}</p>}
+        {successMessage && <p className="text-green-600 mb-4">{successMessage}</p>}
 
-        {/* Display User's Posts */}
-        <div className="mb-8">
+        <section className="mb-8">
           <h3 className="text-xl font-semibold mb-4">Your Posts</h3>
-          {posts.map(post => (
+          {!loading && posts.length === 0 && <p className="text-gray-600">You haven't posted anything yet.</p>}
+          {posts.map((post) => (
             <div key={post.id} className="mb-6">
               <PostCard post={post} />
-              <div className="flex space-x-4 mt-2 items-center justify-center ">
+              <div className="flex gap-4 mt-2 items-center justify-center">
                 <button
-                  onClick={() => handleUpdate(post.id)}
-                  className="text-blue-600 hover:green-500 bg-green-400 px-4 py-2 rounded-sm"
+                  onClick={() => navigate(`/update-post/${post.id}`)}
+                  className="text-white bg-green-600 hover:bg-green-700 px-4 py-2 rounded-sm"
                 >
                   Edit
                 </button>
                 <button
-                  onClick={() => handleDelete(post.id)}
-                  className="text-white rounded-sm hover:red-600 bg-red-500 px-4 py-2"
+                  onClick={() => handleDeletePost(post.id)}
+                  className="text-white bg-red-500 hover:bg-red-600 px-4 py-2 rounded-sm"
                 >
                   Delete
                 </button>
               </div>
             </div>
           ))}
-        </div>
+        </section>
 
-        {/* Display User's Reposts */}
-        <div>
+        <section>
           <h3 className="text-xl font-semibold mb-4">Your Reposts</h3>
-          {reposts.map(repost => (
+          {!loading && reposts.length === 0 && <p className="text-gray-600">You haven't reposted anything yet.</p>}
+          {reposts.map((repost) => (
             <div key={repost.id} className="mb-6">
               <RepostCard repost={repost} />
-              <div className="flex space-x-4 mt-2">
+              <div className="flex mt-2 justify-center">
                 <button
-                  onClick={() => handleUpdate(repost.id)}
-                  className="text-blue-600 hover:green-500 bg-green-400 px-4 py-2 rounded-sm"
+                  onClick={() => handleRemoveRepost(repost.id)}
+                  className="text-white bg-red-500 hover:bg-red-600 px-4 py-2 rounded-sm"
                 >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDelete(repost.id)}
-                  className="text-red-600 rounded-sm hover:red-600 bg-red-500 px-4 py-2"
-                >
-                  Delete
+                  Remove repost
                 </button>
               </div>
             </div>
           ))}
-        </div>
-
-        {posts.length === 0 && reposts.length === 0 && !loading && <p>You have no posts or reposts yet.</p>}
+        </section>
       </div>
     </div>
   );
