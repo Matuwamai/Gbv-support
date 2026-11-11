@@ -1,86 +1,123 @@
-import React, { useState, useContext } from "react";
+import { useEffect, useRef, useState, ChangeEvent, FormEvent } from "react";
 import { FaRegImage } from "react-icons/fa";
-import { Authcontext } from "../context/auth";
-import axios from "axios";
+import { X } from "lucide-react";
+import api, { getErrorMessage } from "../lib/api";
+import { isVideo, MAX_UPLOAD_BYTES } from "../lib/media";
 
-const PostCreation = () => {
+const MAX_POST_LENGTH = 5000;
+
+interface PostCreationProps {
+  /** Called after a post has been created so the feed can refresh. */
+  onCreated?: () => void;
+}
+
+const PostCreation = ({ onCreated }: PostCreationProps) => {
   const [selectedMedia, setSelectedMedia] = useState<File | null>(null);
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
-  const [postText, setPostText] = useState<string>("");
-  const [errorMessage, setErrorMessage] = useState<string>("");
-  const [successMessage, setSucceMessage] = useState<string>("");
-  const API_BASE_URL = "http://localhost:3000/api";
-  const authContext = useContext(Authcontext);
-  const currentUser = authContext?.currentUser;
+  const [postText, setPostText] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleMediaSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      if (file.size > 10 * 1024 * 1024) { 
-        setErrorMessage("File size exceeds 10MB limit.");
-        return;
-      }
-      setErrorMessage("");
-      setSucceMessage("");
-      setSelectedMedia(file);
-      setMediaPreview(URL.createObjectURL(file));
-    }
+  // Release the object URL when the preview changes or the component unmounts.
+  useEffect(() => {
+    return () => {
+      if (mediaPreview) URL.revokeObjectURL(mediaPreview);
+    };
+  }, [mediaPreview]);
+
+  const clearMedia = () => {
+    setSelectedMedia(null);
+    setMediaPreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const handlePostSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    // e.preventDefault();
-    
-    if (!currentUser?.id) {
-      setErrorMessage("You must be logged in to post.");
+  const handleMediaSelect = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setSuccessMessage("");
+    if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
+      setErrorMessage("Please choose an image or a video.");
       return;
     }
+    if (file.size > MAX_UPLOAD_BYTES) {
+      setErrorMessage("File size exceeds the 10MB limit.");
+      return;
+    }
+    setErrorMessage("");
+    setSelectedMedia(file);
+    setMediaPreview(URL.createObjectURL(file));
+  };
+
+  const handlePostSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (submitting) return;
+    setSuccessMessage("");
+
     if (!postText.trim() && !selectedMedia) {
       setErrorMessage("Post cannot be empty.");
       return;
     }
-    
+
     const formData = new FormData();
-    formData.append("content", postText);
-    formData.append("userId", currentUser.id.toString());
+    formData.append("content", postText.trim());
     if (selectedMedia) {
       formData.append("mediaUrl", selectedMedia);
     }
-    
+
+    setSubmitting(true);
     try {
-      const response = await axios.post(`${API_BASE_URL}/posts/`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      console.log("Post created successfully:", response.data);
+      await api.post("/posts", formData);
       setPostText("");
-      setSelectedMedia(null);
-      setMediaPreview(null);
+      clearMedia();
       setErrorMessage("");
-      setSucceMessage("Post created Succefully");
+      setSuccessMessage("Post created successfully.");
+      onCreated?.();
     } catch (error) {
-      setErrorMessage("Error creating post. Please try again.");
+      setErrorMessage(getErrorMessage(error, "Error creating post. Please try again."));
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
     <div className="flex flex-col items-center justify-center p-6 w-full max-w-2xl mx-auto mb-6 bg-purple-900 rounded-2xl shadow-xl">
       <form onSubmit={handlePostSubmit} className="w-full">
-        <div
-          className="w-full h-52 bg-gray-200 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-300 transition"
-          onClick={() => document.getElementById("mediaInput")?.click()}
-        >
-          {mediaPreview ? (
-            mediaPreview.endsWith(".mp4") || mediaPreview.endsWith(".webm") ? (
-              <video src={mediaPreview} controls className="w-full h-full rounded-lg" />
+        <div className="relative">
+          <button
+            type="button"
+            className="w-full h-52 bg-gray-200 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-300 transition overflow-hidden"
+            onClick={() => fileInputRef.current?.click()}
+            aria-label={selectedMedia ? "Change attached media" : "Attach an image or video"}
+          >
+            {mediaPreview ? (
+              isVideo(selectedMedia) ? (
+                <video src={mediaPreview} controls className="w-full h-full rounded-lg" />
+              ) : (
+                <img src={mediaPreview} alt="Selected" className="w-full h-full object-cover rounded-lg" />
+              )
             ) : (
-              <img src={mediaPreview} alt="Selected" className="w-full h-full object-cover rounded-lg" />
-            )
-          ) : (
-            <FaRegImage className="text-white text-4xl" />
+              <span className="flex flex-col items-center gap-2 text-gray-500">
+                <FaRegImage className="text-4xl" />
+                <span className="text-sm">Add a photo or video (optional)</span>
+              </span>
+            )}
+          </button>
+          {selectedMedia && (
+            <button
+              type="button"
+              onClick={clearMedia}
+              className="absolute top-2 right-2 bg-black/60 text-white rounded-full p-1 hover:bg-black/80"
+              aria-label="Remove attached media"
+            >
+              <X size={18} />
+            </button>
           )}
         </div>
         <input
+          ref={fileInputRef}
           type="file"
-          id="mediaInput"
           accept="image/*,video/*"
           className="hidden"
           onChange={handleMediaSelect}
@@ -90,15 +127,18 @@ const PostCreation = () => {
           rows={4}
           placeholder="Write something..."
           value={postText}
+          maxLength={MAX_POST_LENGTH}
           onChange={(e) => setPostText(e.target.value)}
+          aria-label="Post text"
         ></textarea>
-        {errorMessage && <p className="text-red-500 text-sm mt-2 font-semibold">{errorMessage}</p>}
+        {errorMessage && <p className="text-red-400 text-sm mt-2 font-semibold">{errorMessage}</p>}
         {successMessage && <p className="text-green-400 text-md mt-2 font-semibold">{successMessage}</p>}
         <button
           type="submit"
-          className="w-full mt-4 bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 transition text-lg font-semibold"
+          disabled={submitting}
+          className="w-full mt-4 bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 transition text-lg font-semibold disabled:opacity-60"
         >
-          Post
+          {submitting ? "Posting..." : "Post"}
         </button>
       </form>
     </div>
