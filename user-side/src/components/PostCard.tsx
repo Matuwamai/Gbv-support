@@ -1,241 +1,230 @@
-import { useState, useEffect, useContext } from "react";
-import axios from "axios";
+import { useCallback, useEffect, useState, FormEvent } from "react";
 import ThumbUpIcon from "@mui/icons-material/ThumbUp";
+import ThumbUpOutlinedIcon from "@mui/icons-material/ThumbUpOutlined";
 import ModeCommentIcon from "@mui/icons-material/ModeComment";
+import FlagOutlinedIcon from "@mui/icons-material/FlagOutlined";
 import { BiRepost } from "react-icons/bi";
-import { Authcontext } from "../context/auth";
+import api, { getErrorMessage } from "../lib/api";
+import { useAuth } from "../context/auth";
+import type { Comment, Post, ReactionSummary } from "../types";
+import Avatar from "./Avatar";
+import PostMedia from "./PostMedia";
 
-interface User {
-  id: string;
-  profileImage?: string;
-  name?: string;
+interface PostCardProps {
+  post: Post;
+  /** Called after the current user reposts this post. */
+  onReposted?: () => void;
 }
 
-interface Post {
-  id: string | number;
-  text?: string;
-  user?: User;
-  content?: string;
-  mediaUrl?: string;
-  timestamp?: string;
-  likes?: number;
-  createdAt: string;
-  originalPost?: Post; 
-}
+const COMMENTS_PREVIEW = 2;
 
-interface CommentType {
-  id: number;
-  text: string;
-  user?: User;
-  content?: string;
-}
+const PostCard = ({ post, onReposted }: PostCardProps) => {
+  const { currentUser } = useAuth();
+  const isOwnPost = currentUser?.id === post.user?.id;
 
-const PostCard: React.FC<{ post: Post; setPosts?: any }> = ({ post, setPosts }) => {
-  if (!post) return <p>Post not found</p>;
-  
-  const authContext = useContext(Authcontext);
-  const currentUser = authContext?.currentUser;
-  const API_BASE_URL = "http://localhost:3000/api";
+  const [likes, setLikes] = useState(0);
+  const [liked, setLiked] = useState(false);
+  const [reposts, setReposts] = useState(post._count?.reposts ?? 0);
+  const [reposted, setReposted] = useState(false);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [newComment, setNewComment] = useState("");
+  const [showCommentInput, setShowCommentInput] = useState(false);
+  const [showAllComments, setShowAllComments] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState<{ type: "error" | "success"; text: string } | null>(null);
 
-  const [likes, setLikes] = useState<number>(post.likes || 0);
-  const [liked, setLiked] = useState<boolean>(false);
-  const [comments, setComments] = useState<CommentType[]>([]);
-  const [newComment, setNewComment] = useState<string>("");
-  const [reposts, setReposts] = useState<number>(0);
-  const [showCommentInput, setShowCommentInput] = useState<boolean>(false);
-  const [showAllComments, setShowAllComments] = useState<boolean>(false);
-  const [reposted, setReposted] = useState<boolean>(false);
-  const [refresh, setRefresh] = useState(false);
-
-  const triggerRefresh = () => setRefresh((prev) => !prev);
-  useEffect(() => {
-    fetchLikes();
-    fetchReposts();
-  }, [refresh]);
-
-  const fetchLikes = async () => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/likes/${post.id}`);
-      setLikes(response.data.likes);
-    } catch (error) {
-      console.error("Error fetching likes:", error);
-    }
+  const applyReactions = (summary: ReactionSummary) => {
+    setLikes(summary.likes);
+    setLiked(summary.userReaction === "LIKE");
   };
 
-  useEffect(() => {
-    const fetchComments = async () => {
-      try {
-        const response = await axios.get(`${API_BASE_URL}/comments/${post.id}`);
-        setComments(response.data || []);
-        triggerRefresh()
-      } catch (error) {
-        console.error("Error fetching comments:", error);
-        setComments([]);
-      }
-    };
-    fetchComments();
+  const loadPostData = useCallback(async () => {
+    const [reactionRes, repostRes, commentRes] = await Promise.allSettled([
+      api.get<ReactionSummary>(`/likes/${post.id}`),
+      api.get<{ reposts: number; reposted: boolean }>(`/reposts/post/${post.id}`),
+      api.get<Comment[]>(`/comments/${post.id}`),
+    ]);
+    if (reactionRes.status === "fulfilled") applyReactions(reactionRes.value.data);
+    if (repostRes.status === "fulfilled") {
+      setReposts(repostRes.value.data.reposts);
+      setReposted(repostRes.value.data.reposted);
+    }
+    if (commentRes.status === "fulfilled") setComments(commentRes.value.data);
   }, [post.id]);
 
-  const fetchReposts = async () => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/reposts/post/${post.id}`);
-      setReposts(response.data.reposts);
-    } catch (error) {
-      console.error("Error fetching reposts:", error);
-    }
-  };
+  useEffect(() => {
+    loadPostData();
+  }, [loadPostData]);
+
   const handleLike = async () => {
-    if (!currentUser) {
-      console.error("User not logged in");
-      return;
-    }
-  
+    // Optimistic update; the server response then sets the real numbers.
+    const wasLiked = liked;
+    setLiked(!wasLiked);
+    setLikes((prev) => prev + (wasLiked ? -1 : 1));
     try {
-      setLikes((prev) => prev + 1);
-      setLiked(true);
-  
-      const response = await axios.post(`${API_BASE_URL}/likes/`, {
-        userId: currentUser.id,
-        postId: post.id,
-        reaction: "LIKE",
-      });
-  
-      setLikes(response.data.likes); 
-      triggerRefresh()
+      const { data } = await api.post<ReactionSummary>("/likes", { postId: post.id, reaction: "LIKE" });
+      applyReactions(data);
     } catch (error) {
-      console.error("Error liking post:", error);
-      setLikes((prev) => prev - 1); 
+      setLiked(wasLiked);
+      setLikes((prev) => prev + (wasLiked ? 1 : -1));
+      setNotice({ type: "error", text: getErrorMessage(error, "Could not update your like.") });
     }
   };
-  
-  const handleComment = async () => {
-    if (!newComment.trim()) return;
-  
+
+  const handleComment = async (event: FormEvent) => {
+    event.preventDefault();
+    const content = newComment.trim();
+    if (!content || busy) return;
+
+    setBusy(true);
     try {
-      const tempComment = {
-        id: Math.random().toString(), 
-        content: newComment,
-        userId: currentUser?.id,
-        createdAt: new Date().toISOString(),
-      };
-  
-      setComments((prev) => [...prev, tempComment]);
+      const { data } = await api.post<{ comment: Comment }>("/comments", { content, postId: post.id });
+      setComments((prev) => [...prev, data.comment]);
       setNewComment("");
-  
-      const response = await axios.post(`${API_BASE_URL}/comments`, {
-        content: newComment,
-        userId: currentUser?.id,
-        postId: post.id,
-      });
-  
-      setComments((prev) => prev.map((c) => (c.id === tempComment.id ? response.data : c)));
-      triggerRefresh()
-      window.location.reload();
+      setShowAllComments(true);
     } catch (error) {
-      console.error("Error posting comment:", error);
-      setComments((prev) => prev.filter((c) => c.id !== tempComment.id)); 
+      setNotice({ type: "error", text: getErrorMessage(error, "Could not post your comment.") });
+    } finally {
+      setBusy(false);
     }
   };
-  
+
   const handleRepost = async () => {
-    if (!currentUser) {
-      console.error("User not logged in");
-      return;
-    }
-  
+    if (isOwnPost || reposted || busy) return;
+    setBusy(true);
     try {
+      const { data } = await api.post<{ reposts: number }>("/reposts", { postId: post.id });
+      setReposts(data.reposts);
       setReposted(true);
-      setReposts((prev) => prev + 1);
-  
-      const response = await axios.post(`${API_BASE_URL}/reposts/`, {
-        userId: currentUser.id,
-        postId: post.id,
-      });
-  
-      setReposts(response.data.reposts); 
-  
-      if (setPosts) {
-        setPosts((prevPosts) => [response.data.repost, ...prevPosts]);
-      }
-      triggerRefresh()
-      window.location.reload();
+      setNotice({ type: "success", text: "Reposted." });
+      onReposted?.();
     } catch (error) {
-      console.error("Error reposting post:", error);
-      setReposts((prev) => prev - 1); 
+      setNotice({ type: "error", text: getErrorMessage(error, "Could not repost.") });
+    } finally {
+      setBusy(false);
     }
   };
-  
-  
+
+  const handleReport = async () => {
+    if (!window.confirm("Report this post to the moderators?")) return;
+    try {
+      await api.post("/cases", { postId: post.id });
+      setNotice({ type: "success", text: "Thank you. The moderators will review this post." });
+    } catch (error) {
+      setNotice({ type: "error", text: getErrorMessage(error, "Could not report this post.") });
+    }
+  };
+
+  const visibleComments = showAllComments ? comments : comments.slice(0, COMMENTS_PREVIEW);
+
   return (
-    <div className="bg-white shadow-lg rounded-lg p-4 mb-4 w-full  border border-gray-300">
-      
-      <div className="flex items-center mb-2">
-        <img
-          src={post.user?.profileImage || "/default-profile.png"}
-          alt={post.user?.name || "User"}
-          className="w-10 h-10 rounded-full mr-3"
-        />
+    <article className="bg-white shadow-lg rounded-lg p-4 mb-4 w-full border border-gray-300">
+      <header className="flex items-center mb-2 gap-3">
+        <Avatar src={post.user?.profileImage} name={post.user?.name} />
         <div className="flex flex-col">
           <span className="font-semibold text-gray-800">{post.user?.name}</span>
-          <span className="text-gray-900">
-          {new Date(post.createdAt).toLocaleString()}
-          </span>
+          <time className="text-xs text-gray-500" dateTime={post.createdAt}>
+            {new Date(post.createdAt).toLocaleString()}
+          </time>
         </div>
-      </div>
+      </header>
 
-      {post.mediaUrl && (
-        post.mediaUrl.endsWith(".mp4") ? (
-          <video controls className="w-full rounded-lg mb-2">
-            <source src={post.mediaUrl} type="video/mp4" />
-          </video>
-        ) : (
-          <img src={post.mediaUrl} alt="Post" className="w-full rounded-lg mb-2" />
-        )
-      )}
-      {post.content && <p className="text-gray-700 mb-2">{post.content}</p>}
+      <PostMedia src={post.mediaUrl} />
+      {post.content && <p className="text-gray-700 mb-2 whitespace-pre-line break-words">{post.content}</p>}
 
-      {post.originalPost && <PostCard post={post.originalPost} />}
       <div className="flex justify-between text-sm text-gray-500 border-t pt-2">
-        <span>{likes} Likes</span>
-        <span>{comments.length} Comments</span>
-        <span>{reposts} Reposts</span>
+        <span>
+          {likes} {likes === 1 ? "Like" : "Likes"}
+        </span>
+        <span>
+          {comments.length} {comments.length === 1 ? "Comment" : "Comments"}
+        </span>
+        <span>
+          {reposts} {reposts === 1 ? "Repost" : "Reposts"}
+        </span>
       </div>
 
       <div className="flex justify-around text-purple-600 mt-2 border-t pt-2">
-        <button onClick={handleLike} className={liked ? "text-blue-500" : "hover:text-blue-500"}><ThumbUpIcon /></button>
-        <button onClick={() => setShowCommentInput(!showCommentInput)} className="hover:text-blue-500"><ModeCommentIcon /></button>
-        <button onClick={handleRepost} className={reposted ? "text-blue-500" : "hover:text-blue-500"}><BiRepost /></button>
-      </div>
-      {showCommentInput && (
-        <div className="mt-2 flex">
-          <input type="text" className="border p-2 w-full rounded-sm" placeholder="Write a comment..." value={newComment} onChange={(e) => setNewComment(e.target.value)} />
-          <button onClick={handleComment} className="ml-2 px-4 py-2 bg-blue-500 text-white">Post</button>
-        </div>
-      )}
-      <div className="mt-4 border-t pt-2 max-h-40 overflow-y-auto">
-        <h3 className="text-sm font-semibold text-gray-700">Comments ({comments.length})</h3>
-        {(showAllComments ? comments : comments.slice(0, 2)).map((comment, index) => (
-          <div key={index} className="flex items-start mt-2">
-            <img
-              src={comment.user?.profileImage || "/default-profile.png"}
-              alt={comment.user?.name || "User"}
-              className="w-8 h-8 rounded-full"
-            />
-            <div className="bg-gray-100 p-2 rounded-lg w-full">
-              <p className="text-xs font-semibold text-gray-800">{comment.user?.name}</p>
-              <p className="text-xs text-gray-700">{comment.content}</p>
-            </div>
-          </div>
-        ))}
-        {comments.length > 2 && !showAllComments && (
-          <button
-            onClick={() => setShowAllComments(true)}
-            className="text-blue-500 text-sm mt-2">
-            Read More Comments
+        <button
+          onClick={handleLike}
+          className={liked ? "text-blue-500" : "hover:text-blue-500"}
+          aria-pressed={liked}
+          aria-label={liked ? "Unlike" : "Like"}
+          title={liked ? "Unlike" : "Like"}
+        >
+          {liked ? <ThumbUpIcon /> : <ThumbUpOutlinedIcon />}
+        </button>
+        <button
+          onClick={() => setShowCommentInput((show) => !show)}
+          className="hover:text-blue-500"
+          aria-label="Comment"
+          title="Comment"
+        >
+          <ModeCommentIcon />
+        </button>
+        <button
+          onClick={handleRepost}
+          disabled={isOwnPost || reposted || busy}
+          className={`text-2xl disabled:cursor-not-allowed ${reposted ? "text-blue-500" : "hover:text-blue-500 disabled:opacity-40"}`}
+          aria-label="Repost"
+          title={isOwnPost ? "You can't repost your own post" : reposted ? "Already reposted" : "Repost"}
+        >
+          <BiRepost />
+        </button>
+        {!isOwnPost && (
+          <button onClick={handleReport} className="hover:text-red-500" aria-label="Report post" title="Report post">
+            <FlagOutlinedIcon />
           </button>
         )}
       </div>
-    </div>
+
+      {notice && (
+        <p className={`mt-2 text-sm ${notice.type === "error" ? "text-red-500" : "text-green-600"}`} role="status">
+          {notice.text}
+        </p>
+      )}
+
+      {showCommentInput && (
+        <form onSubmit={handleComment} className="mt-2 flex">
+          <input
+            type="text"
+            className="border p-2 w-full rounded-sm"
+            placeholder="Write a comment..."
+            value={newComment}
+            maxLength={2000}
+            onChange={(e) => setNewComment(e.target.value)}
+            aria-label="Write a comment"
+          />
+          <button
+            type="submit"
+            disabled={busy || !newComment.trim()}
+            className="ml-2 px-4 py-2 bg-blue-500 text-white rounded-sm disabled:opacity-50"
+          >
+            Post
+          </button>
+        </form>
+      )}
+
+      {comments.length > 0 && (
+        <section className="mt-4 border-t pt-2 max-h-60 overflow-y-auto">
+          <h3 className="text-sm font-semibold text-gray-700">Comments ({comments.length})</h3>
+          {visibleComments.map((comment) => (
+            <div key={comment.id} className="flex items-start gap-2 mt-2">
+              <Avatar src={comment.user?.profileImage} name={comment.user?.name} size="sm" />
+              <div className="bg-gray-100 p-2 rounded-lg w-full">
+                <p className="text-xs font-semibold text-gray-800">{comment.user?.name}</p>
+                <p className="text-xs text-gray-700 whitespace-pre-line break-words">{comment.content}</p>
+              </div>
+            </div>
+          ))}
+          {comments.length > COMMENTS_PREVIEW && (
+            <button onClick={() => setShowAllComments((show) => !show)} className="text-blue-500 text-sm mt-2">
+              {showAllComments ? "Show fewer comments" : `Read all ${comments.length} comments`}
+            </button>
+          )}
+        </section>
+      )}
+    </article>
   );
 };
 
