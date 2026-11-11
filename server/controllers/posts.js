@@ -3,7 +3,7 @@ import { withPostMedia } from "../lib/media.js";
 import { toUploadPath, removeUpload } from "../lib/upload.js";
 import { canModify } from "../lib/auth.js";
 
-const MAX_CONTENT_LENGTH = 191; // Post.content is a VARCHAR(191) column.
+const MAX_CONTENT_LENGTH = 5000;
 
 const postInclude = {
   user: { select: { id: true, name: true, profileImage: true } },

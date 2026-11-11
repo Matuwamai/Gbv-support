@@ -2,7 +2,7 @@ import prisma from "../lib/prisma.js";
 import { withUserImage } from "../lib/media.js";
 import { canModify } from "../lib/auth.js";
 
-const MAX_COMMENT_LENGTH = 191; // Comment.content is a VARCHAR(191) column.
+const MAX_COMMENT_LENGTH = 2000;
 
 const userSelect = { select: { id: true, name: true, profileImage: true } };
 const withCommentUser = (comment) => ({ ...comment, user: withUserImage(comment.user) });
