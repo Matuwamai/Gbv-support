@@ -1,5 +1,3 @@
-import React from "react";
-
 import gbv_6 from "../assets/gbv-6.png";
 import gbv_7 from "../assets/gbv-7.png";
 import gbv_9 from "../assets/gbv-9.png";

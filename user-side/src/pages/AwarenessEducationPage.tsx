@@ -1,5 +1,3 @@
-import React, { useEffect } from "react";
-
 import gbv_1 from "../assets/gbv-1.png";
 import gbv_3 from "../assets/gbv-3.png";
 import gbv_5 from "../assets/gbv-5.png";
@@ -16,11 +14,7 @@ const sections = [
 ];
 
 export default function AwarenessEducationPage() {
-  useEffect(() => {
-    // Smooth scroll polyfill or browser native support assumed
-  }, []);
-
-  const handleScrollTo = (id) => {
+  const handleScrollTo = (id: string) => {
     const el = document.getElementById(id);
     if (el) {
       el.scrollIntoView({ behavior: "smooth", block: "start" });
