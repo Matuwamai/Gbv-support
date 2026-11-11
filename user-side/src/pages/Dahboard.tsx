@@ -1,90 +1,72 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
+import { useCallback, useEffect, useState } from "react";
+import api, { getErrorMessage } from "../lib/api";
+import type { Post, Repost } from "../types";
 import PostCard from "../components/PostCard";
 import RepostCard from "../components/rePostCard";
 import PostCreation from "../components/Createpost";
 
-
 const Dashboard = () => {
-  type UserType = {
-    id: string;
-    name: string;
-    profilePhoto?: string;
-  };
-
-  type PostType = {
-    id: string | number;
-    user: UserType;
-    content?: string;
-    mediaUrl?: string;
-    likes: number;
-    comments: { id: string; text: string; user: string }[];
-    timestamp?: string;
-    isRepost?: boolean;
-  };
-
-  const API_BASE_URL = "http://localhost:3000/api";
-  const [posts, setPosts] = useState<PostType[]>([]);
-  const [reposts, setReposts] = useState<PostType[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [reposts, setReposts] = useState<Repost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  useEffect(() => {
-    fetchPosts();
-    fetchReposts();
-  }, []);
-
-  const fetchPosts = async () => {
+  const fetchFeed = useCallback(async () => {
     try {
-      const postsResponse = await axios.get<PostType[]>(`${API_BASE_URL}/posts/`);
+      const [postsResponse, repostsResponse] = await Promise.all([
+        api.get<Post[]>("/posts"),
+        api.get<Repost[]>("/reposts"),
+      ]);
       setPosts(postsResponse.data);
-    } catch (error) {
-      console.error("Error fetching posts:", error);
-    }finally{
-      setLoading(false)
-    }
-  };
-
-   const fetchReposts = async  () =>{
-    try{
-      const repostResponse = await axios.get<PostType[]>(`${API_BASE_URL}/reposts/`);
-      setReposts(repostResponse.data);
-    }catch (error){
-      console.error("Error fetching Reposts", error)
-    }finally{
+      setReposts(repostsResponse.data);
+      setError("");
+    } catch (err) {
+      setError(getErrorMessage(err, "Could not load posts."));
+    } finally {
       setLoading(false);
     }
-   };
+  }, []);
+
+  useEffect(() => {
+    fetchFeed();
+  }, [fetchFeed]);
 
   return (
-    <div className="max-w-4xl mx-auto p-4 mt-12 bg-gray-200">
+    <div id="create-post" className="max-w-4xl mx-auto p-4 mt-12 bg-gray-200 min-h-screen">
       <h1 className="text-2xl font-bold text-purple-700 mb-4 text-center">Create a post</h1>
-      <PostCreation />
-      <h1 className="text-2xl font-bold text-purple-700 mb-4 text-center">Posts</h1>
+      <PostCreation onCreated={fetchFeed} />
+
+      {error && (
+        <div className="text-center mb-4">
+          <p className="text-red-600">{error}</p>
+          <button onClick={fetchFeed} className="mt-2 text-purple-700 underline">
+            Try again
+          </button>
+        </div>
+      )}
+
+      <h2 className="text-2xl font-bold text-purple-700 mb-4 text-center">Posts</h2>
       {loading ? (
-        <p className="text-gray-600">Loading posts...</p>
+        <p className="text-gray-600 text-center">Loading posts...</p>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-1 flex items-center justify-center">
+        <div className="flex flex-col gap-4 items-center">
           {posts.length > 0 ? (
-            posts.map((post) => (
-              <PostCard key={post.id} post={post} />
-            ))
+            posts.map((post) => <PostCard key={post.id} post={post} onReposted={fetchFeed} />)
           ) : (
-            <p className="text-gray-600">No posts available.</p>
+            <p className="text-gray-600">No posts yet. Be the first to share.</p>
           )}
         </div>
       )}
 
-      <h1 className="text-2xl font-bold text-purple-700 mt-8 mb-4 text-center">Reposts</h1>
+      <h2 className="text-2xl font-bold text-purple-700 mt-8 mb-4 text-center">Reposts</h2>
       {loading ? (
-        <p className="text-gray-600">Loading reposts...</p>
+        <p className="text-gray-600 text-center">Loading reposts...</p>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-1">
+        <div className="flex flex-col gap-4">
           {reposts.length > 0 ? (
-            reposts.map((repost) => (
-              <RepostCard key={repost.id} repost={repost} />
-            ))
+            reposts.map((repost) => <RepostCard key={repost.id} repost={repost} />)
           ) : (
-            <p className="text-gray-600">No reposts available.</p>
+            <p className="text-gray-600 text-center">No reposts yet.</p>
           )}
         </div>
       )}
