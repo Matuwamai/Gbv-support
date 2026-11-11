@@ -1,12 +1,20 @@
 import { FaHandsHelping, FaUsers, FaPhoneAlt, FaBullhorn } from "react-icons/fa";
 import banner from "../assets/gvb.webp";
-import supportImg from "../assets/emergency-call.jpg"; // Add this image to your assets
-import emergencyImg from "../assets/emergency-call-vector.webp";   // Add this image to your assets
-import awarenessImg from "../assets/emergency-call.jpg";   // Add this image to your assets
-import AwarenessEducationPage from "./AwarenessEducationPage"; // Import the AwarenessEducationPage component
-import EducationalSection from "../components/EducationSection"; // Import the EducationalSection component
+import supportImg from "../assets/emergency-call.jpg";
+import emergencyImg from "../assets/emergency-call-vector.webp";
+import { Link } from "react-router-dom";
+import AwarenessEducationPage from "./AwarenessEducationPage";
+import EducationalSection from "../components/EducationSection";
+import { useAuth } from "../context/auth";
+
+const awarenessImg = supportImg;
 
 export default function LandingPage() {
+    const { currentUser } = useAuth();
+    const primaryCta = currentUser
+      ? { to: "/dashboard", label: "Go to Dashboard" }
+      : { to: "/signup", label: "Get Started" };
+
     return (
       <div className='min-h-screen bg-gradient-to-b from-purple-100 via-gray-100 to-white text-gray-900'>
         {/* Hero Section */}
@@ -18,24 +26,32 @@ export default function LandingPage() {
           />
           <div className='relative z-10 flex flex-col items-center'>
             <FaHandsHelping className='text-7xl mb-6 drop-shadow-lg' />
-            <h1 className='text-5xl md:text-7xl font-extrabold mb-4 drop-shadow-lg'>
+            <h1 className='text-5xl md:text-7xl font-extrabold mb-4 drop-shadow-lg text-center px-4'>
               End Gender Based Violence
             </h1>
             <p className='mt-2 text-xl md:text-2xl max-w-2xl text-center font-medium drop-shadow'>
               A safe space to share, seek help, and empower each other.
               Together, we can make a difference.
             </p>
-            <div className='mt-8 flex gap-4'>
-              <button
-                className='bg-white text-purple-700 px-8 py-3 rounded-full text-xl font-bold shadow-md hover:bg-purple-100 transition'
-                onClick={() => (window.location.href = "/signup")}>
-                Get Started
-              </button>
-              <button
-                className='bg-purple-900 text-white px-8 py-3 rounded-full text-xl font-bold shadow-md hover:bg-purple-800 transition'
-                onClick={() => (window.location.href = "/login")}>
-                Login
-              </button>
+            <div className='mt-8 flex flex-wrap justify-center gap-4'>
+              <Link
+                to={primaryCta.to}
+                className='bg-white text-purple-700 px-8 py-3 rounded-full text-xl font-bold shadow-md hover:bg-purple-100 transition'>
+                {primaryCta.label}
+              </Link>
+              {currentUser ? (
+                <Link
+                  to='/emergency'
+                  className='bg-red-600 text-white px-8 py-3 rounded-full text-xl font-bold shadow-md hover:bg-red-700 transition'>
+                  Get Help Now
+                </Link>
+              ) : (
+                <Link
+                  to='/login'
+                  className='bg-purple-900 text-white px-8 py-3 rounded-full text-xl font-bold shadow-md hover:bg-purple-800 transition'>
+                  Login
+                </Link>
+              )}
             </div>
           </div>
         </header>
@@ -129,11 +145,11 @@ export default function LandingPage() {
             Stand with survivors. Be part of a proactive, supportive community.
             Register today and help us end gender-based violence.
           </p>
-          <button
-            className='bg-white text-purple-700 px-10 py-4 rounded-full text-2xl font-bold shadow-lg hover:bg-purple-100 transition'
-            onClick={() => (window.location.href = "/signup")}>
-            Get Started
-          </button>
+          <Link
+            to={primaryCta.to}
+            className='inline-block bg-white text-purple-700 px-10 py-4 rounded-full text-2xl font-bold shadow-lg hover:bg-purple-100 transition'>
+            {primaryCta.label}
+          </Link>
         </section>
         <EducationalSection />
         <AwarenessEducationPage />
