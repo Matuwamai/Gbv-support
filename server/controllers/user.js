@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import multer from "multer";
 import path from "path";
+import { withUserImage } from "../lib/media.js";
 const SECRET_KEY = process.env.JWT_SECRET ; 
 export const registerUser = async (req, res) => {
   try {
@@ -112,13 +113,7 @@ export const getUserById = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    const baseUrl = process.env.BASE_URL || "http://localhost:3000";
-    const updatedUser = {
-      ...user,
-      profileImage: user.profileImage ? `${baseUrl}/${user.profileImage}` : null,
-    };
-
-    return res.status(200).json(updatedUser);
+    return res.status(200).json(withUserImage(user));
   } catch (error) {
     console.error("Get User Error:", error);
     return res.status(500).json({ message: "Server error" });
@@ -170,7 +165,7 @@ export const updateUser = async (req, res) => {
       },
     });
 
-    return res.status(200).json(updatedUser);
+    return res.status(200).json(withUserImage(updatedUser));
   } catch (error) {
     console.error("Update User Error:", error);
     return res.status(500).json({ message: "Server error" });

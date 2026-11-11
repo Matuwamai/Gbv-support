@@ -1,4 +1,5 @@
 import prisma from "../lib/prisma.js";
+import { withPostMedia } from "../lib/media.js";
 import multer from "multer";
 import path from "path";
 
@@ -34,7 +35,7 @@ export const createPost = async (req, res) => {
       data: { content, userId: numericUserId, mediaUrl: mediaUrl },
     });
 
-    return res.status(201).json({ message: "Post created successfully", post });
+    return res.status(201).json({ message: "Post created successfully", post: withPostMedia(post) });
   } catch (error) {
     console.error("Create Post Error:", error);
     return res.status(500).json({ message: "Server error" });
@@ -48,20 +49,7 @@ export const getAllPosts = async (req, res) => {
       },
       orderBy: { createdAt: "desc" },
     });
-const BASE_URL =`http://localhost:3000`
-
-    const updatedPosts = posts.map(post => ({
-      ...post,
-      mediaUrl: post.mediaUrl ? `${BASE_URL}${post.mediaUrl}` : null,
-      user: {
-        ...post.user,
-        profileImage: post.user.profileImage
-          ? `${BASE_URL}${post.user.profileImage}`
-          : null,
-      },
-    }));
-
-    return res.status(200).json(updatedPosts);
+    return res.status(200).json(posts.map(withPostMedia));
   } catch (error) {
     console.error("Get Posts Error:", error);
     return res.status(500).json({ message: "Server error" });
@@ -77,6 +65,7 @@ export const getPostsByUser = async (req, res) => {
 
     const posts = await prisma.post.findMany({
       where: { userId: id },
+      orderBy: { createdAt: "desc" },
       include: {
         user: {
           select: { id: true, name: true, profileImage: true },
@@ -84,22 +73,7 @@ export const getPostsByUser = async (req, res) => {
       },
     });
 
-    if (!posts.length) {
-      return res.status(404).json({ message: "No posts found for this user" });
-    }
-    const BASE_URL = `http://localhost:3000`
-    const updatedPosts = posts.map(post => ({
-      ...post,
-      media: post.media ? `${BASE_URL}${post.media}` : null,
-      user: {
-        ...post.user,
-        profileImage: post.user.profileImage
-          ? `${BASE_URL}${post.user.profileImage}`
-          : null,
-      },
-    }));
-
-    return res.status(200).json(updatedPosts);
+    return res.status(200).json(posts.map(withPostMedia));
   } catch (error) {
     console.error("Get User Posts Error:", error);
     return res.status(500).json({ message: "Server error" });
@@ -126,20 +100,7 @@ export const getPostById = async (req, res) => {
     if (!post) {
       return res.status(404).json({ message: "Post not found" });
     }
-    const BASE_URL = `http://localhost:3000`
-
-    const updatedPost = {
-      ...post,
-      media: post.media ? `${BASE_URL}${post.media}` : null,
-      user: {
-        ...post.user,
-        profileImage: post.user.profileImage
-          ? `${BASE_URL}${post.user.profileImage}`
-          : null,
-      },
-    };
-
-    return res.status(200).json(updatedPost);
+    return res.status(200).json(withPostMedia(post));
   } catch (error) {
     console.error("Get Post Error:", error);
     return res.status(500).json({ message: "Server error" });
@@ -170,7 +131,7 @@ export const updatePost = async (req, res) => {
       data: { content, mediaUrl },
     });
 
-    return res.status(200).json({ message: "Post updated successfully", post: updatedPost });
+    return res.status(200).json({ message: "Post updated successfully", post: withPostMedia(updatedPost) });
   } catch (error) {
     console.error("Update Post Error:", error);
     return res.status(500).json({ message: "Server error" });

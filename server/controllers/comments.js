@@ -1,4 +1,6 @@
 import prisma from "../lib/prisma.js";
+import { withUserImage } from "../lib/media.js";
+
 export const createComment = async (req, res) => {
   try {
     const { content, userId, postId } = req.body;
@@ -38,17 +40,9 @@ export const getCommentsForPost = async (req, res) => {
       },
       orderBy: { createdAt: "asc" },
     });
-    const updatedComments = comments.map(comment => ({
-      ...comment,
-      user: {
-        ...comment.user,
-        profileImage: comment.user.profileImage 
-          ? `${process.env.BASE_URL}${comment.user.profileImage}` 
-          : null,
-      }
-    }));
-
-    return res.status(200).json(updatedComments);
+    return res
+      .status(200)
+      .json(comments.map((comment) => ({ ...comment, user: withUserImage(comment.user) })));
   } catch (error) {
     console.error("Get Comments Error:", error);
     return res.status(500).json({ message: "Server error" });
@@ -68,7 +62,7 @@ export const getCommentById = async (req, res) => {
       return res.status(404).json({ message: "Comment not found" });
     }
 
-    return res.status(200).json(comment);
+    return res.status(200).json({ ...comment, user: withUserImage(comment.user) });
   } catch (error) {
     console.error("Get Comment Error:", error);
     return res.status(500).json({ message: "Server error" });

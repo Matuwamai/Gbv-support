@@ -1,4 +1,5 @@
 import prisma from "../lib/prisma.js";
+import { withRepostMedia } from "../lib/media.js";
 
 export const createRepost = async (req, res) => {
   try {
@@ -69,25 +70,7 @@ export const getAllRepost = async (req, res) => {
       },
       orderBy: { createdAt: "desc" },
     });
-    const baseUrl = process.env.BASE_URL || 'http://localhost:5000'; 
-
-    const repostsWithImagesAndMedia = reposts.map(repost => ({
-      ...repost,
-      user: {
-        ...repost.user,
-        profileImage: repost.user.profileImage ? `${baseUrl}${repost.user.profileImage}` : null,
-      },
-      post: {
-        ...repost.post,
-        user: {
-          ...repost.post.user,
-          profileImage: repost.post.user.profileImage ? `${baseUrl}${repost.post.user.profileImage}` : null,
-        },
-        mediaUrl: repost.post.mediaUrl ? `${baseUrl}${repost.post.mediaUrl}` : null, 
-      },
-    }));
-
-    return res.status(200).json(repostsWithImagesAndMedia);
+    return res.status(200).json(reposts.map(withRepostMedia));
   } catch (error) {
     console.error("Get All Reposts Error:", error);
     return res.status(500).json({ error: "Error Fetching reposts" });
@@ -128,25 +111,7 @@ export const getRepostsByUser = async (req, res) => {
       },
       orderBy: { createdAt: "desc" },
     });
-    const baseUrl = process.env.BASE_URL || 'http://localhost:5000'; 
-
-    const repostsWithImagesAndMedia = reposts.map(repost => ({
-      ...repost,
-      user: {
-        ...repost.user,
-        profileImage: repost.user.profileImage ? `${baseUrl}${repost.user.profileImage}` : null,
-      },
-      post: {
-        ...repost.post,
-        user: {
-          ...repost.post.user,
-          profileImage: repost.post.user.profileImage ? `${baseUrl}${repost.post.user.profileImage}` : null,
-        },
-        mediaUrl: repost.post.mediaUrl ? `${baseUrl}${repost.post.mediaUrl}` : null, 
-      },
-    }));
-
-    return res.status(200).json(repostsWithImagesAndMedia);
+    return res.status(200).json(reposts.map(withRepostMedia));
   } catch (error) {
     console.error("Get All Reposts Error:", error);
     return res.status(500).json({ error: "Error Fetching reposts" });
