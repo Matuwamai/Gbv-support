@@ -1,78 +1,42 @@
-import React from "react";
-import { User } from "lucide-react";
+import { BiRepost } from "react-icons/bi";
+import type { Repost } from "../types";
+import Avatar from "./Avatar";
+import PostMedia from "./PostMedia";
 
-type UserType = {
-  id: string;
-  name: string;
-  profileImage?: string;
-};
+const RepostCard = ({ repost }: { repost: Repost }) => {
+  const original = repost.post;
 
-type PostType = {
-  id: number;
-  user: UserType; 
-  content?: string;
-  mediaUrl?: string;
-  createdAt: string;
-};
-
-type RepostType = {
-  id: number;
-  user: UserType; 
-  post: PostType; 
-  createdAt: string;
-};
-
-const RepostCard: React.FC<{ repost: RepostType }> = ({ repost }) => {
   return (
-    <div className="border border-gray-300 rounded-lg p-4 shadow-md bg-gray-100">
-      {/* Reposted by section */}
+    <article className="border border-gray-300 rounded-lg p-4 shadow-md bg-gray-100 w-full">
       <div className="flex items-center gap-2 text-gray-600 text-sm mb-3">
-        {repost.user.profileImage ? (
-          <img
-            src={repost.user.profileImage}
-            alt={repost.user.name}
-            className="w-8 h-8 rounded-full"
-          />
-        ) : (
-          <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
-            <User size={20} />
-          </div>
-        )}
+        <BiRepost className="text-xl text-purple-600" aria-hidden />
+        <Avatar src={repost.user.profileImage} name={repost.user.name} size="sm" />
         <p>
           Reposted by <span className="font-semibold">{repost.user.name}</span>
         </p>
       </div>
-      <div className="bg-white p-3 rounded-lg mt-4">
+      <div className="bg-white p-3 rounded-lg mt-2">
         <div className="flex items-center gap-2 text-gray-700">
-          {repost.post.user.profileImage ? (
-            <img
-              src={repost.post.user.profileImage}
-              alt={repost.post.user.name}
-              className="w-8 h-8 rounded-full"
-            />
-          ) : (
-            <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
-              <User size={20} />
-            </div>
-          )}
-          <p className="font-semibold">{repost.post.user.name}</p>
+          <Avatar src={original.user.profileImage} name={original.user.name} size="sm" />
+          <div className="flex flex-col">
+            <span className="font-semibold">{original.user.name}</span>
+            <time className="text-xs text-gray-500" dateTime={original.createdAt}>
+              {new Date(original.createdAt).toLocaleString()}
+            </time>
+          </div>
         </div>
 
         <div className="mt-2">
-          {repost.post.mediaUrl && (
-            <img
-              src={repost.post.mediaUrl}
-              alt="Post media"
-              className="mt-2 rounded-lg w-full"
-            />
+          <PostMedia src={original.mediaUrl} className="mt-2 rounded-lg w-full" />
+          {original.content && (
+            <p className="text-gray-800 whitespace-pre-line break-words">{original.content}</p>
           )}
-          <p className="text-gray-800">{repost.post.content}</p>
         </div>
         <div className="mt-3 text-xs text-gray-500">
-          Reposted on: {new Date(repost.createdAt).toLocaleString()}
+          Reposted on <time dateTime={repost.createdAt}>{new Date(repost.createdAt).toLocaleString()}</time>
         </div>
       </div>
-    </div>
+    </article>
   );
 };
 
