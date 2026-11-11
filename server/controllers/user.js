@@ -150,7 +150,9 @@ export const deleteUser = async (req, res) => {
     const postIds = posts.map((post) => post.id);
 
     await prisma.$transaction([
-      prisma.likeDislike.deleteMany({ where: { userId: userIdNum } }),
+      prisma.likeDislike.deleteMany({
+        where: { OR: [{ userId: userIdNum }, { comment: { userId: userIdNum } }] },
+      }),
       prisma.repost.deleteMany({ where: { userId: userIdNum } }),
       prisma.case.deleteMany({
         where: { OR: [{ userId: userIdNum }, { postId: { in: postIds } }] },
@@ -249,7 +251,7 @@ export const updateUser = async (req, res) => {
       }
       updateData.gender = normalizedGender;
     }
-    if (contact !== undefined) updateData.contact = contact.trim() || null;
+    if (contact !== undefined && contact !== null) updateData.contact = String(contact).trim() || null;
     if (profileImage) updateData.profileImage = profileImage;
 
     const existingUser = await prisma.user.findUnique({ where: { id: userIdNum } });

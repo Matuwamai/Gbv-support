@@ -17,6 +17,9 @@ export const requireAuth = async (req, res, next) => {
   } catch {
     return res.status(401).json({ message: "Invalid or expired token" });
   }
+  if (!Number.isInteger(payload?.userId)) {
+    return res.status(401).json({ message: "Invalid or expired token" });
+  }
 
   try {
     const user = await prisma.user.findUnique({
